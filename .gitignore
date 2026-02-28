@@ -1,0 +1,54 @@
+# Directories
+build/
+build-*/
+cmake-build-*/
+.cache/
+out/
+out/Debug/
+out/Release/
+
+# Cmake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+compile_commands.json
+../compile_commands.json
+build/compile_commands.json
+
+# Make / Ninja
+Makefile
+*.ninja
+*.ninja_deps
+*.ninja_log
+rules.ninja
+
+# Object files
+*.o
+*.obj
+*.lo
+*.la
+
+# Binaries
+*.out
+*.exe
+*.dll
+*.so
+*.so.*
+*.dylib
+*.a
+
+# Debug / Sanitizer
+*.dSYM/
+*.gcno
+*.gcda
+*.gcov
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
