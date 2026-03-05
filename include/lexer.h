@@ -20,6 +20,7 @@ typedef enum {
 
 typedef enum {
     ARRAY_OK = 0,
+    ARRAY_NULL,
     ARRAY_EMPTY,
     ARRAY_OUT_OF_BOUNDS,
     ARRAY_NULL_ARG,
@@ -56,10 +57,11 @@ typedef struct {
 // Basic array functionality
 ASTNodeArray ASTNodeArray_init(size_t size);
 void ASTNodeArray_free(ASTNodeArray *arr);
-ASTNodeArrayErr ASTNodeArray_push(ASTNodeArray arr, ASTNode node);
-ASTNodeArrayErr ASTNodeArray_get(const ASTNodeArray arr, size_t index, ASTNode *out);
+ASTNodeArrayErr ASTNodeArray_push(ASTNodeArray *arr, ASTNode node);
+ASTNodeArrayErr ASTNodeArray_get(const ASTNodeArray *arr, size_t index, ASTNode *out);
 // Out in pop can be NULL so it doesn't return anything
-ASTNodeArrayErr ASTNodeArray_pop(ASTNodeArray arr, size_t index, ASTNode *out);
+ASTNodeArrayErr ASTNodeArray_pop(ASTNodeArray *arr, size_t index, ASTNode *out);
+size_t ASTNodeArray_len(ASTNodeArray *arr);
 
 // Lexer funtions as well as few functionality
 LexerErr tokenize(const char* input, ASTNodeArray *out);

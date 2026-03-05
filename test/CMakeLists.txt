@@ -1,10 +1,10 @@
 find_package(cmocka REQUIRED)
 
-add_executable(test_parser test_parser.c)
+add_executable(test_nodeArray test_ASTNodeArray.c)
 
-target_link_libraries(test_parser
+target_link_libraries(test_nodeArray
     calculator_lib
     cmocka::cmocka
 )
 
-add_test(NAME parser_tests COMMAND test_parser)
+add_test(NAME nodeArray_tests COMMAND test_nodeArray)
