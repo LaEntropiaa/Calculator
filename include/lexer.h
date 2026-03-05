@@ -7,7 +7,7 @@
 // For identifing
 typedef enum {
     NODE_NUMBER,
-    NODE_OPERATOR,
+    NODE_BINARY_OP,
 } ASTNodeType;
 
 // For classify operators
@@ -41,10 +41,12 @@ typedef struct ASTNode {
     ASTNodeType type;
     union {
         double number;
-        struct ASTNode *left;
-        struct ASTNode *right;
-        Operator op;
-    } operator;
+        struct {
+            struct ASTNode *left;
+            struct ASTNode *right;
+            Operator op;
+        } binary;
+    } data;
 } ASTNode;
 
 // I prefer ot have a dynamic array for storing the "tokens"
