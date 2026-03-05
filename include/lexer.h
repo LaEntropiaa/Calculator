@@ -23,6 +23,7 @@ typedef enum {
     ARRAY_EMPTY,
     ARRAY_OUT_OF_BOUNDS,
     ARRAY_NULL_ARG,
+    ARRAY_ALLOC,
 } ASTNodeArrayErr;
 
 typedef enum {
