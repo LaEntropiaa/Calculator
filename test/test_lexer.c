@@ -6,21 +6,36 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-static void test_string_to_number(void **state) {
+static void test_string_to_number_normal(void **state) {
     (void) state;
 
     char num[16] = "2333t55";
     size_t offset = 0;
-    int64_t result = 0;
-    assert_int_equal(string_to_number(num, &offset, &result), 0);
+    ASTNode result;
 
-    assert_int_equal(offset, 4);
-    assert_double_equal(result, 2333, 1e-6);
+    assert_int_equal(tokenize_number(num, &offset, &result), LEXER_OK);
+
+    assert_int_equal(offset, 4); // equal to t position in string
+    assert_int_equal(result.type, NODE_INTEGER);
+    assert_int_equal(result.data.integer, 2333);
+}
+
+static void test_string_to_number_overflow(void **state) {
+    (void) state;
+
+    // Number is INT64_MAX but with a extra 8 at the end
+    char num[32] = "92233720368547758078yy7";
+    size_t offset = 0;
+    ASTNode result;
+    assert_int_equal(tokenize_number(num, &offset, &result), LEXER_INT_OVERFLOW);
+    // Technically it can trigger a buf overflow error but obvioulsy 
+    // it will trigger int overflow error first
 }
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_string_to_number),
+        cmocka_unit_test(test_string_to_number_normal),
+        cmocka_unit_test(test_string_to_number_overflow),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

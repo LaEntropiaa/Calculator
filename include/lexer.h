@@ -30,6 +30,7 @@ typedef enum {
 
 typedef enum {
     LEXER_OK = 0,
+    LEXER_INT_OVERFLOW,
     LEXER_FAILED_NUMBER_CONVERSION,
     LEXER_NOT_RECOGNIZED_SYMBOL,
     LEXER_EMPTY_INPUT,
@@ -70,7 +71,6 @@ size_t ASTNodeArray_len(ASTNodeArray *arr);
 // Lexer funtions as well as few functionality
 LexerErr tokenize(const char* input, ASTNodeArray *out);
 LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
-LexerErr string_to_number(const char* input, size_t *offset, int64_t *number);
-void reverser_string(char* input);
+LexerErr string_to_integer(const char buf[], int64_t *number);
 
 #endif // !LEXER_H

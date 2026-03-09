@@ -112,11 +112,14 @@ size_t ASTNodeArray_len(ASTNodeArray *arr) {
     return arr->len;
 }
 
+
+
 // CURRENTLY, it only supports ints, not clear how floating
 // point is implemented but i'll figure it out
-LexerErr string_to_number(const char *input, size_t *offset, int64_t *number) {
+LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
     char buf[128] = { '\0' };
     size_t buf_pos = 0;
+    bool is_integer = true; // Will later be used to differentiate fractions
 
     size_t current = *offset;
     while (isdigit(input[current])) {
@@ -128,15 +131,30 @@ LexerErr string_to_number(const char *input, size_t *offset, int64_t *number) {
         current++;
         buf_pos++;
     }
-    
+
+    ASTNode new_node;
+    if (is_integer) {
+        new_node.type = NODE_INTEGER;
+        LexerErr status = string_to_integer(buf, &new_node.data.integer);
+        if (status == LEXER_OK) {
+            *out = new_node;
+        }
+        *offset = current;
+        return status;
+    }
+
+    return LEXER_FAILED_NUMBER_CONVERSION;
+}
+
+LexerErr string_to_integer(const char *buf, int64_t *number) {
     int c = 0;
     int64_t count = 0;
     while (buf[c] != '\0') {
         
         int digit = buf[c] - '0';
 
-        if (count > (INT_MAX - digit) / 10) {
-            return LEXER_FAILED_NUMBER_CONVERSION;
+        if (count > (INT64_MAX - digit) / 10) {
+            return LEXER_INT_OVERFLOW;
         }
         count = count * 10;
         count += digit;
@@ -145,6 +163,5 @@ LexerErr string_to_number(const char *input, size_t *offset, int64_t *number) {
     }
 
     *number = count;
-    *offset = current;
     return LEXER_OK;
 }
