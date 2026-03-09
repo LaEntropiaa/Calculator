@@ -3,10 +3,11 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // For identifing
 typedef enum {
-    NODE_NUMBER,
+    NODE_INTEGER,
     NODE_BINARY_OP,
 } ASTNodeType;
 
@@ -41,7 +42,7 @@ typedef enum {
 typedef struct ASTNode {
     ASTNodeType type;
     union {
-        double number;
+        int64_t integer;
         struct {
             struct ASTNode *left;
             struct ASTNode *right;
@@ -69,7 +70,7 @@ size_t ASTNodeArray_len(ASTNodeArray *arr);
 // Lexer funtions as well as few functionality
 LexerErr tokenize(const char* input, ASTNodeArray *out);
 LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
-LexerErr string_to_number(const char* input, size_t *offset, double *number);
+LexerErr string_to_number(const char* input, size_t *offset, int64_t *number);
 void reverser_string(char* input);
 
 #endif // !LEXER_H

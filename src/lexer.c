@@ -114,7 +114,7 @@ size_t ASTNodeArray_len(ASTNodeArray *arr) {
 
 // CURRENTLY, it only supports ints, not clear how floating
 // point is implemented but i'll figure it out
-LexerErr string_to_number(const char *input, size_t *offset, double *number) {
+LexerErr string_to_number(const char *input, size_t *offset, int64_t *number) {
     char buf[128] = { '\0' };
     size_t buf_pos = 0;
 
@@ -130,7 +130,7 @@ LexerErr string_to_number(const char *input, size_t *offset, double *number) {
     }
     
     int c = 0;
-    long count = 0;
+    int64_t count = 0;
     while (buf[c] != '\0') {
         
         int digit = buf[c] - '0';
@@ -144,7 +144,7 @@ LexerErr string_to_number(const char *input, size_t *offset, double *number) {
         c++;
     }
 
-    *number = (double) count;
+    *number = count;
     *offset = current;
     return LEXER_OK;
 }

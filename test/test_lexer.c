@@ -11,7 +11,7 @@ static void test_string_to_number(void **state) {
 
     char num[16] = "2333t55";
     size_t offset = 0;
-    double result = 0;
+    int64_t result = 0;
     assert_int_equal(string_to_number(num, &offset, &result), 0);
 
     assert_int_equal(offset, 4);

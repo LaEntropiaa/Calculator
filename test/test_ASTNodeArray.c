@@ -12,18 +12,18 @@ static void test_array_push(void **state) {
     // We use 2 to force resize and checking anything wrong with malloc
     ASTNodeArray arr = ASTNodeArray_init(2);
     ASTNode node1 = {
-        .type = NODE_NUMBER,
-        .data = { .number = 90 }
+        .type = NODE_INTEGER,
+        .data = { .integer = 90 }
     };
 
     ASTNode node2 = {
-        .type = NODE_NUMBER,
-        .data = { .number = 80 }
+        .type = NODE_INTEGER,
+        .data = { .integer = 80 }
     };
 
     ASTNode node3 = {
-        .type = NODE_NUMBER,
-        .data = { .number = 70 }
+        .type = NODE_INTEGER,
+        .data = { .integer = 70 }
     };
 
     assert_int_equal(ASTNodeArray_push(&arr, node1), ARRAY_OK);
@@ -44,18 +44,18 @@ static void test_array_pop(void **state) {
     // Set to force desize
     ASTNodeArray arr = ASTNodeArray_init(16);
     ASTNode node1 = {
-        .type = NODE_NUMBER,
-        .data = { .number = 90 }
+        .type = NODE_INTEGER,
+        .data = { .integer = 90 }
     };
 
     ASTNode node2 = {
-        .type = NODE_NUMBER,
-        .data = { .number = 80 }
+        .type = NODE_INTEGER,
+        .data = { .integer = 80 }
     };
 
     ASTNode node3 = {
-        .type = NODE_NUMBER,
-        .data = { .number = 70 }
+        .type = NODE_INTEGER,
+        .data = { .integer = 70 }
     };
 
     assert_int_equal(ASTNodeArray_push(&arr, node1), ARRAY_OK);
@@ -69,8 +69,8 @@ static void test_array_pop(void **state) {
 
     ASTNode node4;
     assert_int_equal(ASTNodeArray_pop(&arr, 1, &node4), ARRAY_OK);
-    assert_int_equal(node4.type, NODE_NUMBER);
-    assert_int_equal(node4.data.number, 80);
+    assert_int_equal(node4.type, NODE_INTEGER);
+    assert_int_equal(node4.data.integer, 80);
 
     ASTNodeArray_free(&arr);
 }
