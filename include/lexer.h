@@ -34,6 +34,7 @@ typedef enum {
     LEXER_EMPTY_INPUT,
     LEXER_NULL_ARG,
     LEXER_WRONG_SYNTAX,
+    LEXER_BUF_OVERFLOW,
 } LexerErr;
 
 // Can be thought as tokens, they will be used by the parser.
@@ -68,6 +69,7 @@ size_t ASTNodeArray_len(ASTNodeArray *arr);
 // Lexer funtions as well as few functionality
 LexerErr tokenize(const char* input, ASTNodeArray *out);
 LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
-LexerErr string_to_number(const char* str, double *number);
+LexerErr string_to_number(const char* input, size_t *offset, double *number);
+void reverser_string(char* input);
 
 #endif // !LEXER_H

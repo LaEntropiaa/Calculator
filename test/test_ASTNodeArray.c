@@ -34,12 +34,15 @@ static void test_array_push(void **state) {
 
     assert_int_equal(ASTNodeArray_push(&arr, node3), ARRAY_OK);
     assert_int_equal(ASTNodeArray_len(&arr), 3);
+
+    ASTNodeArray_free(&arr);
 }
 
 static void test_array_pop(void **state) {
     (void) state;
 
-    ASTNodeArray arr = ASTNodeArray_init(2);
+    // Set to force desize
+    ASTNodeArray arr = ASTNodeArray_init(16);
     ASTNode node1 = {
         .type = NODE_NUMBER,
         .data = { .number = 90 }
@@ -68,7 +71,10 @@ static void test_array_pop(void **state) {
     assert_int_equal(ASTNodeArray_pop(&arr, 1, &node4), ARRAY_OK);
     assert_int_equal(node4.type, NODE_NUMBER);
     assert_int_equal(node4.data.number, 80);
+
+    ASTNodeArray_free(&arr);
 }
+
 
 int main(void) {
     const struct CMUnitTest tests[] = {

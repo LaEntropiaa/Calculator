@@ -1,6 +1,10 @@
 #include "lexer.h"
+#include <ctype.h>
+#include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <limits.h>
 
 #define NODE_ARRAY_DEFAULT_SIZE 64
 // Helps  state machine for the lexer :)
@@ -78,6 +82,16 @@ ASTNodeArrayErr ASTNodeArray_pop(ASTNodeArray *arr, size_t index, ASTNode *out) 
     if (index >= arr->len) {
         return ARRAY_OUT_OF_BOUNDS;
     }
+
+    if (arr->cap / 4 > arr->len) {
+        size_t new_cap = arr->cap / 2;
+        ASTNode *tmp = realloc(arr->data, new_cap * sizeof(ASTNode));
+        if (tmp == NULL) {
+            return ARRAY_ALLOC;
+        }
+        arr->data = tmp;
+        arr->cap = new_cap;
+    }
     
     if (out != NULL) {
         ASTNode node_to_delete = arr->data[index];
@@ -96,4 +110,41 @@ size_t ASTNodeArray_len(ASTNodeArray *arr) {
         return 0;
     }
     return arr->len;
+}
+
+// CURRENTLY, it only supports ints, not clear how floating
+// point is implemented but i'll figure it out
+LexerErr string_to_number(const char *input, size_t *offset, double *number) {
+    char buf[128] = { '\0' };
+    size_t buf_pos = 0;
+
+    size_t current = *offset;
+    while (isdigit(input[current])) {
+        buf[buf_pos] = input[current];
+        
+        if (buf_pos >= sizeof(buf)) {
+            return LEXER_BUF_OVERFLOW;
+        }
+        current++;
+        buf_pos++;
+    }
+    
+    int c = 0;
+    long count = 0;
+    while (buf[c] != '\0') {
+        
+        int digit = buf[c] - '0';
+
+        if (count > (INT_MAX - digit) / 10) {
+            return LEXER_FAILED_NUMBER_CONVERSION;
+        }
+        count = count * 10;
+        count += digit;
+        
+        c++;
+    }
+
+    *number = (double) count;
+    *offset = current;
+    return LEXER_OK;
 }
