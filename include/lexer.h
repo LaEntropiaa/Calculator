@@ -72,5 +72,6 @@ size_t ASTNodeArray_len(ASTNodeArray *arr);
 LexerErr tokenize(const char* input, ASTNodeArray *out);
 LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
 LexerErr string_to_integer(const char buf[], int64_t *number);
+bool isoperator(int c);
 
 #endif // !LEXER_H

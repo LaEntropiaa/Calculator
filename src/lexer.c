@@ -112,7 +112,48 @@ size_t ASTNodeArray_len(ASTNodeArray *arr) {
     return arr->len;
 }
 
+LexerErr tokenize(const char *input, ASTNodeArray *out) {
+    size_t offset = 0;
+    LexerState state = WAIT_FOR_NUMBER;
+    ASTNodeArray arr = ASTNodeArray_init(0); // 0 defaults to 64
 
+    while (input[offset] != '\n' && input[offset] != '\0') {
+        int current = input[offset];
+
+        if (isdigit(current) && state == WAIT_FOR_NUMBER) {
+            ASTNode new_node;
+            LexerErr result = tokenize_number(input, &offset, &new_node);
+
+            if (result != LEXER_OK) {
+                ASTNodeArray_free(&arr);
+                return result;
+            }
+
+            ASTNodeArray_push(&arr, new_node);
+            state = WAIT_FOR_OPERATOR;
+        } else if (isoperator(current) && state == WAIT_FOR_OPERATOR) {
+            ASTNode new_node = {
+                .type = NODE_BINARY_OP,
+                .data.binary.op = current,
+                .data.binary.right = NULL,
+                .data.binary.left = NULL,
+            };
+
+            ASTNodeArray_push(&arr, new_node);
+            state = WAIT_FOR_NUMBER;
+        } else if (isspace(current)) {
+            // Nothing...
+        } else {
+            ASTNodeArray_free(&arr);
+            return LEXER_NOT_RECOGNIZED_SYMBOL;
+        }
+
+        offset++;
+    }
+
+    *out = arr;
+    return LEXER_OK;
+}
 
 // CURRENTLY, it only supports ints, not clear how floating
 // point is implemented but i'll figure it out
@@ -164,4 +205,16 @@ LexerErr string_to_integer(const char *buf, int64_t *number) {
 
     *number = count;
     return LEXER_OK;
+}
+
+bool isoperator(int c) {
+    switch (c) {
+        case '+':
+        case '-':
+        case '/':
+        case '*':
+            return true;
+        default:
+            return false;
+    }
 }
