@@ -120,7 +120,11 @@ LexerErr tokenize(const char *input, ASTNodeArray *out) {
     while (input[offset] != '\n' && input[offset] != '\0') {
         int current = input[offset];
 
-        if (isdigit(current) && state == WAIT_FOR_NUMBER) {
+        if (isdigit(current)) {
+            if (state != WAIT_FOR_NUMBER) {
+                ASTNodeArray_free(&arr);
+                return LEXER_WRONG_SYNTAX;
+            }
             ASTNode new_node;
             LexerErr result = tokenize_number(input, &offset, &new_node);
 
@@ -131,7 +135,10 @@ LexerErr tokenize(const char *input, ASTNodeArray *out) {
 
             ASTNodeArray_push(&arr, new_node);
             state = WAIT_FOR_OPERATOR;
-        } else if (isoperator(current) && state == WAIT_FOR_OPERATOR) {
+        } else if (isoperator(current)) {
+            if (state != WAIT_FOR_OPERATOR) {
+                return LEXER_WRONG_SYNTAX;
+            }
             ASTNode new_node = {
                 .type = NODE_BINARY_OP,
                 .data.binary.op = current,

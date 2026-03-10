@@ -45,6 +45,34 @@ static void test_tokenize_normal_expresion(void **state) {
     assert_int_equal(node.data.integer, 789);
 }
 
+static void test_tokenize_unrecognized_symbol(void **state) {
+    (void) state;
+
+    char expr[256] = " 2 j 3 / 66 } 789";
+    ASTNodeArray tokens = {
+        .len = 0,
+        .cap = 0,
+    };
+
+    assert_int_equal(tokenize(expr, &tokens), LEXER_NOT_RECOGNIZED_SYMBOL);
+    assert_int_equal(tokens.len, 0);
+    assert_int_equal(tokens.cap, 0);
+}
+
+static void test_tokenize_wrong_sintax(void **state) {
+    (void) state;
+
+    char expr[256] = "2 3 / 66 789";
+    ASTNodeArray tokens = {
+        .len = 0,
+        .cap = 0,
+    };
+
+    assert_int_equal(tokenize(expr, &tokens), LEXER_WRONG_SYNTAX);
+    assert_int_equal(tokens.len, 0);
+    assert_int_equal(tokens.cap, 0);
+}
+
 static void test_string_to_number_normal(void **state) {
     (void) state;
 
@@ -76,6 +104,8 @@ int main(void) {
         cmocka_unit_test(test_string_to_number_normal),
         cmocka_unit_test(test_string_to_number_overflow),
         cmocka_unit_test(test_tokenize_normal_expresion),
+        cmocka_unit_test(test_tokenize_unrecognized_symbol),
+        cmocka_unit_test(test_tokenize_wrong_sintax),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
