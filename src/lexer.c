@@ -141,7 +141,7 @@ LexerErr tokenize(const char *input, ASTNodeArray *out) {
             }
             ASTNode new_node = {
                 .type = NODE_BINARY_OP,
-                .data.binary.op = current,
+                .data.binary.op = char_to_operator(current),
                 .data.binary.right = NULL,
                 .data.binary.left = NULL,
             };
@@ -156,6 +156,10 @@ LexerErr tokenize(const char *input, ASTNodeArray *out) {
         }
 
         offset++;
+    }
+
+    if (arr.len < 1) {
+        return LEXER_EMPTY_INPUT;
     }
 
     *out = arr;
@@ -223,5 +227,24 @@ bool isoperator(int c) {
             return true;
         default:
             return false;
+    }
+}
+
+Operator char_to_operator(int c) {
+    switch (c) {
+        case '+':
+            return OP_ADD;
+            break;
+        case '-':
+            return OP_SUB;
+            break;
+        case '*':
+            return OP_MUL;
+            break;
+        case '/':
+            return OP_DIV;
+            break;
+        default: // I mean shouldn't be used, we assume
+            return -1;
     }
 }

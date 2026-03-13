@@ -22,7 +22,7 @@ static void test_tokenize_normal_expresion(void **state) {
 
     ASTNodeArray_get(&tokens, 1, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
-    assert_int_equal(node.data.binary.op, '+');
+    assert_int_equal(node.data.binary.op, OP_ADD);
 
     ASTNodeArray_get(&tokens, 2, &node);
     assert_int_equal(node.type, NODE_INTEGER);
@@ -30,7 +30,7 @@ static void test_tokenize_normal_expresion(void **state) {
 
     ASTNodeArray_get(&tokens, 3, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
-    assert_int_equal(node.data.binary.op, '/');
+    assert_int_equal(node.data.binary.op, OP_DIV);
 
     ASTNodeArray_get(&tokens, 4, &node);
     assert_int_equal(node.type, NODE_INTEGER);
@@ -38,7 +38,7 @@ static void test_tokenize_normal_expresion(void **state) {
 
     ASTNodeArray_get(&tokens, 5, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
-    assert_int_equal(node.data.binary.op, '*');
+    assert_int_equal(node.data.binary.op, OP_MUL);
 
     ASTNodeArray_get(&tokens, 6, &node);
     assert_int_equal(node.type, NODE_INTEGER);
