@@ -4,11 +4,14 @@ typedef struct {
     ASTNode *head;
 } AST;
 
-typedef enum {
-    PARSER_NUD, // Null Denotation
-    PARSER_LED, // Left Denotation
-} ParserState;
+typedef struct {
+    ASTNodeArray *arr;
+    size_t pos;
+} ASTNodeSlice;
 
-size_t node_lbp(Operator op);
-size_t node_rbp(Operator op);
+ASTNode *nud(ASTNodeSlice *slice, size_t pos);
+ASTNode *led(ASTNodeSlice *slice, size_t pos, size_t right_precedence);
+
+size_t node_lbp(ASTNode node);
+size_t node_rbp(ASTNode node);
 AST parse(ASTNodeArray arr);
