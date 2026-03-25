@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "lexer.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -37,7 +38,24 @@ uint8_t node_rbp(ASTNode node) {
     }
 }
 
+ASTNode ASTNodeSlice_next(ASTNodeSlice *slice) {
+    return slice->arr->data[slice->pos++];
+}
 
+ASTNode ASTNodeSlice_peek(ASTNodeSlice *slice) {
+    return slice->arr->data[slice->pos];
+}
+
+bool ASTNodeSlice_is_valid(ASTNodeSlice *slice) {
+    if (slice->arr->len < 1) {
+        return false;
+    }
+    if (slice->pos >= slice->arr->len - 1) {
+        return false;
+    }
+
+    return true;
+}
 
 AST parse(ASTNodeArray *arr) {
     AST tree;
