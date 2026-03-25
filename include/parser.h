@@ -1,3 +1,6 @@
+#ifndef PARSER_H
+#define PARSER_H
+
 #include "lexer.h"
 #include <stdint.h>
 
@@ -23,3 +26,4 @@ uint8_t node_rbp(ASTNode node);
 AST parse(ASTNodeArray *arr);
 ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp);
 
+#endif // !PARSER_H
