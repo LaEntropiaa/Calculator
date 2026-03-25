@@ -37,12 +37,25 @@ uint8_t node_rbp(ASTNode node) {
     }
 }
 
+
+
+AST parse(ASTNodeArray *arr) {
+    AST tree;
+    ASTNodeSlice context = {
+        .arr = arr,
+        .pos = 0,
+    };
+
+    tree.head = parse_expr(&context, 0);
+    return tree;
+}
+
 ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp) {
     ASTNode *left_side = malloc(sizeof(ASTNode));
     *left_side = ASTNodeSlice_next(slice);
 
     while (true) {
-        if (slice->pos >= slice->arr->len - 1) {
+        if (ASTNodeSlice_is_valid(slice)) {
             break;
         }
 
