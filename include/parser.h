@@ -23,5 +23,3 @@ uint8_t node_rbp(ASTNode node);
 AST parse(ASTNodeArray *arr);
 ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp);
 
-void print_AST(AST tree);
-void print_node(ASTNode *node, int depth);

@@ -9,7 +9,6 @@ int main(void) {
     tokenize("3 + 4 * 5", &context);
 
     AST tree = parse(&context);
-    print_AST(tree);
 
     printf("Hola\n");
 
