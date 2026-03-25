@@ -74,5 +74,6 @@ LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
 LexerErr string_to_integer(const char buf[], int64_t *number);
 bool isoperator(int c);
 Operator char_to_operator(int c);
+char operator_to_char(Operator op);
 
 #endif // !LEXER_H

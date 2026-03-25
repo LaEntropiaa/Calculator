@@ -248,3 +248,16 @@ Operator char_to_operator(int c) {
             return -1;
     }
 }
+
+char operator_to_char(Operator op) {
+    switch (op) {
+        case OP_ADD:
+            return '+';
+        case OP_SUB:
+            return '-';
+        case OP_MUL:
+            return '*';
+        case OP_DIV:
+            return '/';
+    }
+}

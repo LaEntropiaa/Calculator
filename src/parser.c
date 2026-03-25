@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 uint8_t node_lbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
@@ -100,3 +101,34 @@ ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp) {
 
     return left_side;
 }
+
+void print_AST(AST tree) {
+    print_node(tree.head, 0);
+}
+
+void print_node(ASTNode *node, int depth) {
+    if (!node) return;
+
+    if (node->type == NODE_BINARY_OP) {
+        print_node(node->data.binary.right, depth + 1);
+    }
+
+    for (int i = 0; i < depth; i++) {
+        printf("    ");
+    }
+
+    switch (node->type) {
+        case NODE_INTEGER:
+            printf("%ld\n", node->data.integer);
+            break;
+
+        case NODE_BINARY_OP:
+            printf("%c\n", operator_to_char(node->data.binary.op));
+            break;
+    }
+
+    if (node->type == NODE_BINARY_OP) {
+        print_node(node->data.binary.left, depth + 1);
+    }
+}
+
