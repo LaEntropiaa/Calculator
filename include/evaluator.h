@@ -4,6 +4,6 @@
 #include "lexer.h"
 #include <stdint.h>
 
-uint64_t evaluate(ASTNode *tree);
+int64_t evaluate(ASTNode *tree);
 
 #endif // !EVALUATOR_H

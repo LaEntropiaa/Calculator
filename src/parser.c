@@ -17,7 +17,7 @@ uint8_t node_lbp(ASTNode node) {
             break;
         case OP_DIV:
         case OP_MUL:
-            return 30;
+            return 20;
         default:
             return 0;
     }
@@ -31,11 +31,13 @@ uint8_t node_rbp(ASTNode node) {
     switch (node.data.binary.op) {
         case OP_ADD:
         case OP_SUB:
-            return 20;
+            return 11;
             break;
         case OP_DIV:
         case OP_MUL:
-            return 40;
+            return 21;
+        default:
+            return 0;
     }
 }
 
@@ -51,7 +53,7 @@ bool ASTNodeSlice_is_valid(ASTNodeSlice *slice) {
     if (slice->arr->len < 1) {
         return false;
     }
-    if (slice->pos >= slice->arr->len - 1) {
+    if (slice->pos >= slice->arr->len) {
         return false;
     }
 
@@ -78,7 +80,7 @@ ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp) {
             break;
         }
 
-        ASTNode operator = operator = ASTNodeSlice_peek(slice);
+        ASTNode operator = ASTNodeSlice_peek(slice);
         uint8_t rbp = node_rbp(operator);
         uint8_t lbp = node_lbp(operator);
 

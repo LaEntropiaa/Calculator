@@ -19,7 +19,6 @@ include_directories(include)
 add_library(calculator_lib
     src/lexer.c
     src/parser.c
-    src/ast.c
     src/evaluator.c
 )
 
