@@ -1,8 +1,9 @@
 #include "parser.h"
 #include "lexer.h"
+#include <stdint.h>
 #include <stdlib.h>
 
-size_t node_lbp(ASTNode node) {
+uint8_t node_lbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
         return 0;
     }
@@ -14,13 +15,13 @@ size_t node_lbp(ASTNode node) {
             break;
         case OP_DIV:
         case OP_MUL:
-            return 20;
+            return 30;
         default:
             return 0;
     }
 }
 
-size_t node_rbp(ASTNode node) {
+uint8_t node_rbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
         return 0;
     }
@@ -28,12 +29,43 @@ size_t node_rbp(ASTNode node) {
     switch (node.data.binary.op) {
         case OP_ADD:
         case OP_SUB:
-            return 10;
+            return 20;
             break;
         case OP_DIV:
         case OP_MUL:
-            return 20;
+            return 40;
     }
 }
 
+ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp) {
+    ASTNode *left_side = malloc(sizeof(ASTNode));
+    *left_side = ASTNodeSlice_next(slice);
 
+    while (true) {
+        if (slice->pos >= slice->arr->len - 1) {
+            break;
+        }
+
+        ASTNode operator = operator = ASTNodeSlice_peek(slice);
+        uint8_t rbp = node_rbp(operator);
+        uint8_t lbp = node_lbp(operator);
+
+        if (lbp < min_bp) {
+            break;
+        }
+
+        ASTNodeSlice_next(slice);
+        ASTNode *right_side = parse_expr(slice, rbp);
+
+        ASTNode *new_node = malloc(sizeof(ASTNode));
+        *new_node = operator;
+
+        new_node->data.binary.left = left_side;
+        new_node->data.binary.right = right_side;
+
+        left_side = new_node;
+    }
+
+
+    return left_side;
+}

@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <stdint.h>
 
 typedef struct {
     ASTNode *head;
@@ -9,13 +10,13 @@ typedef struct {
     size_t pos;
 } ASTNodeSlice;
 
-ASTNode ASTNodeSlice_peek(ASTNodeSlice slice);
-ASTNode ASTNodeSlice_next(ASTNodeSlice slice);
+ASTNode ASTNodeSlice_peek(ASTNodeSlice *slice);
+ASTNode ASTNodeSlice_next(ASTNodeSlice *slice);
 
 ASTNode *nud(ASTNodeSlice *slice);
 ASTNode *led(ASTNodeSlice *slice, size_t right_precedence);
 
-size_t node_lbp(ASTNode node);
-size_t node_rbp(ASTNode node);
+uint8_t node_lbp(ASTNode node);
+uint8_t node_rbp(ASTNode node);
 AST parse(ASTNodeArray arr);
-AST parse_expr(ASTNodeSlice *arr);
+ASTNode *parse_expr(ASTNodeSlice *slice, uint8_t min_bp);
