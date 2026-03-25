@@ -107,7 +107,9 @@ void print_AST(AST tree) {
 }
 
 void print_node(ASTNode *node, int depth) {
-    if (!node) return;
+    if (node == NULL) {
+        return;
+    }
 
     if (node->type == NODE_BINARY_OP) {
         print_node(node->data.binary.right, depth + 1);
