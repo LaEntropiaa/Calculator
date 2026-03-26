@@ -59,7 +59,6 @@ typedef struct {
     ASTNode *data;
 } ASTNodeArray;
 
-// Basic array functionality
 ASTNodeArray ASTNodeArray_init(size_t size);
 void ASTNodeArray_free(ASTNodeArray *arr);
 ASTNodeArrayErr ASTNodeArray_push(ASTNodeArray *arr, ASTNode node);
