@@ -1,9 +1,10 @@
 #include "parser.h"
 #include "lexer.h"
+#include "arena.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
+
 
 uint8_t node_lbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {

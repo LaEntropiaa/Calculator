@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "lexer.h"
+#include "arena.h"
 #include <stdint.h>
 
 typedef struct {
