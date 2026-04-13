@@ -1,7 +1,7 @@
 #include "evaluator.h"
 #include "lexer.h"
 #include <stdint.h>
-#include <stdlib.h>
+
 
 int64_t evaluate(ASTNode *tree) {
     if (tree->type == NODE_BINARY_OP) {
@@ -9,8 +9,6 @@ int64_t evaluate(ASTNode *tree) {
         ASTNode *left = tree->data.binary.left;
         ASTNode *right = tree->data.binary.right;
         
-        free(tree);
-
         switch (op) {
             case OP_ADD:
                 return evaluate(left) + evaluate(right);
@@ -24,7 +22,6 @@ int64_t evaluate(ASTNode *tree) {
         }
     } else {
         int64_t return_val = tree->data.integer;
-        free(tree);
         return return_val;
     }
 }

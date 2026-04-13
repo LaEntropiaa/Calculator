@@ -1,3 +1,4 @@
+#include "arena.h"
 #include "lexer.h"
 #include "parser.h"
 #include <stdarg.h>
@@ -17,7 +18,8 @@ static void test_parsing_basic_expression(void **state) {
     assert_int_equal(tokenize(expr, &tokens), LEXER_OK);
     assert_int_equal(tokens.len, 7);
 
-    AST tree = parse(&tokens);
+    ParseResult result = parse(&tokens);
+    AST tree = result.tree;
     // Assert head is +
     assert_int_equal(tree.head->type, NODE_BINARY_OP);
     assert_int_equal(tree.head->data.binary.op, OP_ADD);
@@ -68,6 +70,7 @@ static void test_parsing_basic_expression(void **state) {
             tree.head->data.binary.right->data.binary.left->data.binary.left->data.integer, 
             3
             );
+    arena_destroy(result.arena);
 }
 
 int main(void) {
