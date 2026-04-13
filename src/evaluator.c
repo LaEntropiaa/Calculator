@@ -1,9 +1,11 @@
 #include "evaluator.h"
+#include "arena.h"
 #include "lexer.h"
+#include "parser.h"
 #include <stdint.h>
 
 
-int64_t evaluate(ASTNode *tree) {
+int64_t evaluate_tree(ASTNode *tree) {
     if (tree->type == NODE_BINARY_OP) {
         Operator op = tree->data.binary.op;
         ASTNode *left = tree->data.binary.left;
@@ -11,18 +13,24 @@ int64_t evaluate(ASTNode *tree) {
         
         switch (op) {
             case OP_ADD:
-                return evaluate(left) + evaluate(right);
+                return evaluate_tree(left) + evaluate_tree(right);
             case OP_SUB:
-                return evaluate(left) - evaluate(right);
+                return evaluate_tree(left) - evaluate_tree(right);
             case OP_MUL:
-                return evaluate(left) * evaluate(right);
+                return evaluate_tree(left) * evaluate_tree(right);
             case OP_DIV:
-                return evaluate(left) / evaluate(right);
+                return evaluate_tree(left) / evaluate_tree(right);
 
         }
-    } else {
-        int64_t return_val = tree->data.integer;
-        return return_val;
     }
+
+    int64_t return_val = tree->data.integer;
+    return return_val;
 }
 
+int64_t evaluate(ParseResult context) {
+    int64_t result = evaluate_tree(context.tree);
+    arena_destroy(&context.arena);
+
+    return result;
+}

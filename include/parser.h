@@ -15,8 +15,8 @@ typedef struct {
 } ASTNodeSlice;
 
 typedef struct {
-    Arena *arena;
-    AST tree;
+    Arena arena;
+    ASTNode *tree;
 } ParseResult;
 
 ASTNode ASTNodeSlice_peek(ASTNodeSlice *slice);

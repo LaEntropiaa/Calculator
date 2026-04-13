@@ -63,15 +63,15 @@ bool ASTNodeSlice_is_valid(ASTNodeSlice *slice) {
 }
 
 ParseResult parse(ASTNodeArray *arr) {
-    AST tree;
     ASTNodeSlice context = {
         .arr = arr,
         .pos = 0,
     };
     Arena arena = arena_init(sizeof(ASTNode) * arr->len).arena;
 
-    tree.head = parse_expr(&context, &arena, 0);
-    return (ParseResult) {.arena = &arena, .tree = tree};
+    return (ParseResult) {
+        .arena = arena,
+        .tree = parse_expr(&context, &arena, 0)};
 }
 
 ASTNode *parse_expr(ASTNodeSlice *slice, Arena *arena, uint8_t min_bp) {
@@ -107,7 +107,17 @@ ASTNode *parse_expr(ASTNodeSlice *slice, Arena *arena, uint8_t min_bp) {
         ASTNodeSlice_next(slice);
         ASTNode *right_side = parse_expr(slice, arena, rbp);
 
-        ASTNode *new_node = malloc(sizeof(ASTNode));
+        arena_ensure_capacity(
+            arena,
+            sizeof(ASTNode),
+            alignof(ASTNode));
+        ASTNode *new_node = arena_unwrap_pointer(
+            arena_alloc(
+                arena, 
+                sizeof(ASTNode), 
+                alignof(ASTNode)
+            )
+        );
         *new_node = operator;
 
         new_node->data.binary.left = left_side;

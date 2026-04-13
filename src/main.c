@@ -23,9 +23,7 @@ int main(void) {
     tokenize(buf, &context);
 
     ParseResult par = parse(&context);
-    AST tree = par.tree;
-    int64_t result = evaluate(tree.head);
-    arena_destroy(par.arena);
+    int64_t result = evaluate(par);
 
 
     printf("El resultado es: %" PRIi64 "\n", result);
