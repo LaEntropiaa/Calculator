@@ -1,3 +1,4 @@
+#include "arena.h"
 #include "evaluator.h"
 #include "lexer.h"
 #include "parser.h"
@@ -21,8 +22,8 @@ int main(void) {
     ASTNodeArray context;
     tokenize(buf, &context);
 
-    AST tree = parse(&context);
-    int64_t result = evaluate(tree.head);
+    ParseResult par = parse(&context);
+    int64_t result = evaluate(par);
 
 
     printf("El resultado es: %" PRIi64 "\n", result);

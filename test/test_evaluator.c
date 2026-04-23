@@ -16,8 +16,8 @@ static void test_basic_evaluation(void** state) {
     ASTNodeArray context;
 
     tokenize(expr, &context);
-    AST tree = parse(&context);
-    uint64_t value = evaluate(tree.head);
+    ParseResult result = parse(&context);
+    int64_t value = evaluate(result);
 
     assert_int_equal(value, 82);
 }
