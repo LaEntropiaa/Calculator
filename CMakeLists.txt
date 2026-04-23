@@ -41,6 +41,7 @@ target_include_directories(calculator_lib
 # 🔥 aquí está la magia
 target_link_libraries(calculator_lib
     PUBLIC arena
+    PUBLIC arraylist
 )
 
 add_executable(calculator src/main.c)
