@@ -4,8 +4,6 @@
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
-
 
 uint8_t node_lbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
