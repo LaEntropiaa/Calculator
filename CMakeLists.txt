@@ -31,14 +31,12 @@ add_library(calculator_lib
     src/lexer.c
     src/parser.c
     src/evaluator.c
-    src/ASTNodeArray.c
 )
 
 target_include_directories(calculator_lib
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# 🔥 aquí está la magia
 target_link_libraries(calculator_lib
     PUBLIC arena
     PUBLIC arraylist

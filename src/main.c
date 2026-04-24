@@ -1,4 +1,3 @@
-#include "arena.h"
 #include "evaluator.h"
 #include "lexer.h"
 #include "parser.h"
