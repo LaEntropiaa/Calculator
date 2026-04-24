@@ -92,9 +92,9 @@ ASTNodeArrayErr ASTNodeArray_pop(ASTNodeArray *arr, size_t index, ASTNode *out);
 size_t ASTNodeArray_len(ASTNodeArray *arr);
 
 // Lexer funtions as well as few functionality
-LexerErr tokenize(const char* input, ASTNodeArray *out);
-LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
-LexerErr string_to_integer(const char buf[], int64_t *number);
+TokenizeResult tokenize(const char* input);
+ASTNodeResult tokenize_number(const char* input, size_t *offset);
+I64Result string_to_integer(const char buf[]);
 bool isoperator(int c);
 Operator char_to_operator(int c);
 char operator_to_char(Operator op);
