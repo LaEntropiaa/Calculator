@@ -67,7 +67,7 @@ TokenizeResult tokenize(const char *input) {
 
 // CURRENTLY, it only supports ints, not clear how floating
 // point is implemented but i'll figure it out
-LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
+ASTNodeResult tokenize_number(const char *input, size_t *offset) {
     char buf[128] = { '\0' };
     size_t buf_pos = 0;
     bool is_integer = true; // Will later be used to differentiate fractions
@@ -77,7 +77,7 @@ LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
         buf[buf_pos] = input[current];
         
         if (buf_pos >= sizeof(buf)) {
-            return LEXER_BUF_OVERFLOW;
+            return (ASTNodeResult) {.is_valid = false, .err = LEXER_BUF_OVERFLOW};
         }
         current++;
         buf_pos++;
@@ -86,18 +86,18 @@ LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
     ASTNode new_node;
     if (is_integer) {
         new_node.type = NODE_INTEGER;
-        LexerErr status = string_to_integer(buf, &new_node.data.integer);
-        if (status == LEXER_OK) {
-            *out = new_node;
+        I64Result status = string_to_integer(buf);
+        if (status.is_valid == LEXER_OK) {
+            new_node.data.integer = status.number;
         }
         *offset = current;
-        return status;
+        return (ASTNodeResult) {.is_valid = true, .node = new_node};
     }
 
-    return LEXER_FAILED_NUMBER_CONVERSION;
+    return (ASTNodeResult) {.is_valid = false, .err = LEXER_FAILED_NUMBER_CONVERSION};
 }
 
-LexerErr string_to_integer(const char *buf, int64_t *number) {
+I64Result string_to_integer(const char *buf) {
     int c = 0;
     int64_t count = 0;
     while (buf[c] != '\0') {
@@ -105,7 +105,7 @@ LexerErr string_to_integer(const char *buf, int64_t *number) {
         int digit = buf[c] - '0';
 
         if (count > (INT64_MAX - digit) / 10) {
-            return LEXER_INT_OVERFLOW;
+            return (I64Result) {.is_valid = false, .err = LEXER_INT_OVERFLOW};
         }
         count = count * 10;
         count += digit;
@@ -113,8 +113,7 @@ LexerErr string_to_integer(const char *buf, int64_t *number) {
         c++;
     }
 
-    *number = count;
-    return LEXER_OK;
+    return (I64Result) {.is_valid = true, .number = count};
 }
 
 bool isoperator(int c) {
