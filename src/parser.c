@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "arraylist.h"
 #include "lexer.h"
 #include "arena.h"
 #include <stdalign.h>
@@ -41,38 +42,17 @@ uint8_t node_rbp(ASTNode node) {
     }
 }
 
-ASTNode ASTNodeSlice_next(ASTNodeSlice *slice) {
-    return slice->arr->data[slice->pos++];
-}
-
-ASTNode ASTNodeSlice_peek(ASTNodeSlice *slice) {
-    return slice->arr->data[slice->pos];
-}
-
-bool ASTNodeSlice_is_valid(ASTNodeSlice *slice) {
-    if (slice->arr->len < 1) {
-        return false;
-    }
-    if (slice->pos >= slice->arr->len) {
-        return false;
-    }
-
-    return true;
-}
-
-ParseResult parse(ASTNodeArray *arr) {
-    ASTNodeSlice context = {
-        .arr = arr,
-        .pos = 0,
-    };
-    Arena arena = arena_init(sizeof(ASTNode) * arr->len).arena;
+ParseResult parse(TokenizeResult tokens) {
+    ArraySlice *context = arraylist_slice(tokens.arr, 0, arraylist_size(tokens.arr));
+    Arena arena = arena_init(sizeof(ASTNode) * arraylist_size(tokens.arr)).arena;
 
     return (ParseResult) {
+        .is_valid = true,
         .arena = arena,
-        .tree = parse_expr(&context, &arena, 0)};
+        .tree = parse_expr(context, &arena, 0)};
 }
 
-ASTNode *parse_expr(ASTNodeSlice *slice, Arena *arena, uint8_t min_bp) {
+ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
     arena_ensure_capacity(
         arena,
         sizeof(ASTNode),
@@ -87,14 +67,15 @@ ASTNode *parse_expr(ASTNodeSlice *slice, Arena *arena, uint8_t min_bp) {
         )
     );
 
-    *left_side = ASTNodeSlice_next(slice);
+    arrayslice_next(slice, left_side);
 
     while (true) {
-        if (!ASTNodeSlice_is_valid(slice)) {
+        if (!arrayslice_is_valid(slice)) {
             break;
         }
 
-        ASTNode operator = ASTNodeSlice_peek(slice);
+        ASTNode operator;
+        arrayslice_peek(slice, &operator);
         uint8_t rbp = node_rbp(operator);
         uint8_t lbp = node_lbp(operator);
 
@@ -102,7 +83,7 @@ ASTNode *parse_expr(ASTNodeSlice *slice, Arena *arena, uint8_t min_bp) {
             break;
         }
 
-        ASTNodeSlice_next(slice);
+        arrayslice_next(slice, NULL);
         ASTNode *right_side = parse_expr(slice, arena, rbp);
 
         arena_ensure_capacity(

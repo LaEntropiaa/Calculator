@@ -21,15 +21,6 @@ typedef enum {
 } Operator;
 
 typedef enum {
-    ARRAY_OK = 0,
-    ARRAY_NULL,
-    ARRAY_EMPTY,
-    ARRAY_OUT_OF_BOUNDS,
-    ARRAY_NULL_ARG,
-    ARRAY_ALLOC,
-} ASTNodeArrayErr;
-
-typedef enum {
     LEXER_OK = 0,
     LEXER_INT_OVERFLOW,
     LEXER_FAILED_NUMBER_CONVERSION,
@@ -76,20 +67,6 @@ typedef struct {
         int64_t number;
     };
 } I64Result;
-// I prefer ot have a dynamic array for storing the "tokens"
-typedef struct {
-    size_t len;
-    size_t cap;
-    ASTNode *data;
-} ASTNodeArray;
-
-ASTNodeArray ASTNodeArray_init(size_t size);
-void ASTNodeArray_free(ASTNodeArray *arr);
-ASTNodeArrayErr ASTNodeArray_push(ASTNodeArray *arr, ASTNode node);
-ASTNodeArrayErr ASTNodeArray_get(const ASTNodeArray *arr, size_t index, ASTNode *out);
-// Out in pop can be NULL so it doesn't return anything
-ASTNodeArrayErr ASTNodeArray_pop(ASTNodeArray *arr, size_t index, ASTNode *out);
-size_t ASTNodeArray_len(ASTNodeArray *arr);
 
 // Lexer funtions as well as few functionality
 TokenizeResult tokenize(const char* input);
