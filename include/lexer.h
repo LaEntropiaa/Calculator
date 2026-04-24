@@ -53,6 +53,29 @@ typedef struct ASTNode {
     } data;
 } ASTNode;
 
+typedef struct {
+    bool is_valid;
+    union {
+        LexerErr err;
+        ArrayList *arr;
+    };
+} TokenizeResult;
+
+typedef struct {
+    bool is_valid;
+    union {
+        LexerErr err;
+        ASTNode node;
+    };
+} ASTNodeResult;
+
+typedef struct {
+    bool is_valid;
+    union {
+        LexerErr err;
+        int64_t number;
+    };
+} I64Result;
 // I prefer ot have a dynamic array for storing the "tokens"
 typedef struct {
     size_t len;
