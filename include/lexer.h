@@ -1,6 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "arraylist.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -18,15 +19,6 @@ typedef enum {
     OP_MUL,
     OP_DIV
 } Operator;
-
-typedef enum {
-    ARRAY_OK = 0,
-    ARRAY_NULL,
-    ARRAY_EMPTY,
-    ARRAY_OUT_OF_BOUNDS,
-    ARRAY_NULL_ARG,
-    ARRAY_ALLOC,
-} ASTNodeArrayErr;
 
 typedef enum {
     LEXER_OK = 0,
@@ -52,25 +44,34 @@ typedef struct ASTNode {
     } data;
 } ASTNode;
 
-// I prefer ot have a dynamic array for storing the "tokens"
 typedef struct {
-    size_t len;
-    size_t cap;
-    ASTNode *data;
-} ASTNodeArray;
+    bool is_valid;
+    union {
+        LexerErr err;
+        ArrayList *arr;
+    };
+} TokenizeResult;
 
-ASTNodeArray ASTNodeArray_init(size_t size);
-void ASTNodeArray_free(ASTNodeArray *arr);
-ASTNodeArrayErr ASTNodeArray_push(ASTNodeArray *arr, ASTNode node);
-ASTNodeArrayErr ASTNodeArray_get(const ASTNodeArray *arr, size_t index, ASTNode *out);
-// Out in pop can be NULL so it doesn't return anything
-ASTNodeArrayErr ASTNodeArray_pop(ASTNodeArray *arr, size_t index, ASTNode *out);
-size_t ASTNodeArray_len(ASTNodeArray *arr);
+typedef struct {
+    bool is_valid;
+    union {
+        LexerErr err;
+        ASTNode node;
+    };
+} ASTNodeResult;
+
+typedef struct {
+    bool is_valid;
+    union {
+        LexerErr err;
+        int64_t number;
+    };
+} I64Result;
 
 // Lexer funtions as well as few functionality
-LexerErr tokenize(const char* input, ASTNodeArray *out);
-LexerErr tokenize_number(const char* input, size_t *offset, ASTNode *out);
-LexerErr string_to_integer(const char buf[], int64_t *number);
+TokenizeResult tokenize(const char* input);
+ASTNodeResult tokenize_number(const char* input, size_t *offset);
+I64Result string_to_integer(const char buf[]);
 bool isoperator(int c);
 Operator char_to_operator(int c);
 char operator_to_char(Operator op);

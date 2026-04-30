@@ -1,4 +1,5 @@
 #include "arena.h"
+#include "arraylist.h"
 #include "lexer.h"
 #include "parser.h"
 #include <stdarg.h>
@@ -12,13 +13,12 @@ static void test_parsing_basic_expression(void **state) {
     (void) state;
 
     char expr[256] = "2 + 3 / 66 * 789";
-    ASTNodeArray tokens;
-    ASTNode node;
-    
-    assert_int_equal(tokenize(expr, &tokens), LEXER_OK);
-    assert_int_equal(tokens.len, 7);
+    TokenizeResult tokens = tokenize(expr);
 
-    ParseResult result = parse(&tokens);
+    assert_true(tokens.is_valid);
+    assert_int_equal(arraylist_size(tokens.arr), 7);
+
+    ParseResult result = parse(tokens);
     // Assert head is +
     assert_int_equal(result.tree->type, NODE_BINARY_OP);
     assert_int_equal(result.tree->data.binary.op, OP_ADD);

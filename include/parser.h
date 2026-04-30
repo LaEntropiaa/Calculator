@@ -3,33 +3,39 @@
 
 #include "lexer.h"
 #include "arena.h"
+#include "arraylist.h"
 #include <stdint.h>
 
 typedef struct {
     ASTNode *head;
 } AST;
 
-typedef struct {
-    ASTNodeArray *arr;
-    size_t pos;
-} ASTNodeSlice;
+typedef enum {
+    PARSER_OK = 0,
+    PARSER_UNEXPECTED_TOKEN,
+    PARSER_MISSING_OPERAND,
+    PARSER_UNMATCHED_PAREN,
+    PARSER_OUT_OF_MEMORY,
+} ParserErr;
 
 typedef struct {
-    Arena arena;
-    ASTNode *tree;
+    bool is_valid;
+    union {
+        ParserErr err;
+        struct {
+            Arena arena;
+            ASTNode *tree;
+        };
+    };
 } ParseResult;
 
-ASTNode ASTNodeSlice_peek(ASTNodeSlice *slice);
-ASTNode ASTNodeSlice_next(ASTNodeSlice *slice);
-bool ASTNodeSlice_is_valid(ASTNodeSlice *slice);
-
-ASTNode *nud(ASTNodeSlice *slice);
-ASTNode *led(ASTNodeSlice *slice, size_t right_precedence);
+ASTNode *nud(ArraySlice *slice);
+ASTNode *led(ArraySlice *slice, size_t right_precedence);
 
 uint8_t node_lbp(ASTNode node);
 uint8_t node_rbp(ASTNode node);
 
-ParseResult parse(ASTNodeArray *arr);
-ASTNode *parse_expr(ASTNodeSlice *slice, Arena *arena, uint8_t min_bp);
+ParseResult parse(TokenizeResult tokens);
+ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);
 
 #endif // !PARSER_H

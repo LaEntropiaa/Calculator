@@ -1,4 +1,3 @@
-#include "arena.h"
 #include "evaluator.h"
 #include "lexer.h"
 #include "parser.h"
@@ -19,10 +18,9 @@ int main(void) {
     }
     buf[pos] = '\0';
 
-    ASTNodeArray context;
-    tokenize(buf, &context);
+    TokenizeResult tokens = tokenize(buf);
 
-    ParseResult par = parse(&context);
+    ParseResult par = parse(tokens);
     int64_t result = evaluate(par);
 
 

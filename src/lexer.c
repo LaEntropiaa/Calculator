@@ -1,6 +1,7 @@
 #include "lexer.h"
+#include "arraylist.h"
 #include <ctype.h>
-#include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -12,32 +13,31 @@ typedef enum {
 } LexerState;
 
 
-LexerErr tokenize(const char *input, ASTNodeArray *out) {
+TokenizeResult tokenize(const char *input) {
     size_t offset = 0;
     LexerState state = WAIT_FOR_NUMBER;
-    ASTNodeArray arr = ASTNodeArray_init(0); // 0 defaults to 64
+    ArrayList *arr = arraylist_init(64, sizeof(ASTNode));
 
     while (input[offset] != '\n' && input[offset] != '\0') {
         int current = input[offset];
 
         if (isdigit(current)) {
             if (state != WAIT_FOR_NUMBER) {
-                ASTNodeArray_free(&arr);
-                return LEXER_WRONG_SYNTAX;
+                arraylist_destroy(&arr);
+                return (TokenizeResult) {.is_valid = false, .err = LEXER_WRONG_SYNTAX};
             }
-            ASTNode new_node;
-            LexerErr result = tokenize_number(input, &offset, &new_node);
+            ASTNodeResult result = tokenize_number(input, &offset);
 
-            if (result != LEXER_OK) {
-                ASTNodeArray_free(&arr);
-                return result;
+            if (!result.is_valid) {
+                arraylist_destroy(&arr);
+                return (TokenizeResult) {.is_valid = false, .err = result.err};
             }
 
-            ASTNodeArray_push(&arr, new_node);
+            arraylist_push_back(arr, &result.node);
             state = WAIT_FOR_OPERATOR;
         } else if (isoperator(current)) {
             if (state != WAIT_FOR_OPERATOR) {
-                return LEXER_WRONG_SYNTAX;
+                return (TokenizeResult) {.is_valid = false, .err =LEXER_WRONG_SYNTAX};
             }
             ASTNode new_node = {
                 .type = NODE_BINARY_OP,
@@ -46,29 +46,28 @@ LexerErr tokenize(const char *input, ASTNodeArray *out) {
                 .data.binary.left = NULL,
             };
 
-            ASTNodeArray_push(&arr, new_node);
+            arraylist_push_back(arr, &new_node);
             state = WAIT_FOR_NUMBER;
         } else if (isspace(current)) {
             // Nothing...
         } else {
-            ASTNodeArray_free(&arr);
-            return LEXER_NOT_RECOGNIZED_SYMBOL;
+            arraylist_destroy(&arr);
+            return (TokenizeResult) {.is_valid = false, .err = LEXER_NOT_RECOGNIZED_SYMBOL};
         }
 
         offset++;
     }
 
-    if (arr.len < 1) {
-        return LEXER_EMPTY_INPUT;
+    if (arraylist_size(arr) < 1) {
+        return (TokenizeResult) {.is_valid = false, .err = LEXER_EMPTY_INPUT};
     }
 
-    *out = arr;
-    return LEXER_OK;
+    return (TokenizeResult) {.is_valid = true, .arr = arr};
 }
 
 // CURRENTLY, it only supports ints, not clear how floating
 // point is implemented but i'll figure it out
-LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
+ASTNodeResult tokenize_number(const char *input, size_t *offset) {
     char buf[128] = { '\0' };
     size_t buf_pos = 0;
     bool is_integer = true; // Will later be used to differentiate fractions
@@ -78,7 +77,7 @@ LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
         buf[buf_pos] = input[current];
         
         if (buf_pos >= sizeof(buf)) {
-            return LEXER_BUF_OVERFLOW;
+            return (ASTNodeResult) {.is_valid = false, .err = LEXER_BUF_OVERFLOW};
         }
         current++;
         buf_pos++;
@@ -87,18 +86,19 @@ LexerErr tokenize_number(const char *input, size_t *offset, ASTNode *out) {
     ASTNode new_node;
     if (is_integer) {
         new_node.type = NODE_INTEGER;
-        LexerErr status = string_to_integer(buf, &new_node.data.integer);
-        if (status == LEXER_OK) {
-            *out = new_node;
+        I64Result status = string_to_integer(buf);
+        if (!status.is_valid) {
+            return (ASTNodeResult) {.is_valid = false, .err = status.err};
         }
+        new_node.data.integer = status.number;
         *offset = current;
-        return status;
+        return (ASTNodeResult) {.is_valid = true, .node = new_node};
     }
 
-    return LEXER_FAILED_NUMBER_CONVERSION;
+    return (ASTNodeResult) {.is_valid = false, .err = LEXER_FAILED_NUMBER_CONVERSION};
 }
 
-LexerErr string_to_integer(const char *buf, int64_t *number) {
+I64Result string_to_integer(const char *buf) {
     int c = 0;
     int64_t count = 0;
     while (buf[c] != '\0') {
@@ -106,7 +106,7 @@ LexerErr string_to_integer(const char *buf, int64_t *number) {
         int digit = buf[c] - '0';
 
         if (count > (INT64_MAX - digit) / 10) {
-            return LEXER_INT_OVERFLOW;
+            return (I64Result) {.is_valid = false, .err = LEXER_INT_OVERFLOW};
         }
         count = count * 10;
         count += digit;
@@ -114,8 +114,7 @@ LexerErr string_to_integer(const char *buf, int64_t *number) {
         c++;
     }
 
-    *number = count;
-    return LEXER_OK;
+    return (I64Result) {.is_valid = true, .number = count};
 }
 
 bool isoperator(int c) {

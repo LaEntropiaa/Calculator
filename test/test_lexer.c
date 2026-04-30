@@ -1,3 +1,4 @@
+#include "arraylist.h"
 #include "lexer.h"
 #include <stdarg.h>
 #include <stdbool.h>
@@ -10,37 +11,37 @@ static void test_tokenize_normal_expresion(void **state) {
     (void) state;
 
     char expr[256] = "2 + 3 / 66 * 789";
-    ASTNodeArray tokens;
     ASTNode node;
-    
-    assert_int_equal(tokenize(expr, &tokens), LEXER_OK);
-    assert_int_equal(tokens.len, 7);
+    TokenizeResult tokens = tokenize(expr);
 
-    ASTNodeArray_get(&tokens, 0, &node);
+    assert_true(tokens.is_valid);
+    assert_int_equal(arraylist_size(tokens.arr), 7);
+
+    arraylist_get(tokens.arr, 0, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 2);
 
-    ASTNodeArray_get(&tokens, 1, &node);
+    arraylist_get(tokens.arr, 1, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
     assert_int_equal(node.data.binary.op, OP_ADD);
 
-    ASTNodeArray_get(&tokens, 2, &node);
+    arraylist_get(tokens.arr, 2, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 3);
 
-    ASTNodeArray_get(&tokens, 3, &node);
+    arraylist_get(tokens.arr, 3, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
     assert_int_equal(node.data.binary.op, OP_DIV);
 
-    ASTNodeArray_get(&tokens, 4, &node);
+    arraylist_get(tokens.arr, 4, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 66);
 
-    ASTNodeArray_get(&tokens, 5, &node);
+    arraylist_get(tokens.arr, 5, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
     assert_int_equal(node.data.binary.op, OP_MUL);
 
-    ASTNodeArray_get(&tokens, 6, &node);
+    arraylist_get(tokens.arr, 6, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 789);
 }
@@ -49,28 +50,20 @@ static void test_tokenize_unrecognized_symbol(void **state) {
     (void) state;
 
     char expr[256] = " 2 j 3 / 66 } 789";
-    ASTNodeArray tokens = {
-        .len = 0,
-        .cap = 0,
-    };
+    TokenizeResult tokens = tokenize(expr);
 
-    assert_int_equal(tokenize(expr, &tokens), LEXER_NOT_RECOGNIZED_SYMBOL);
-    assert_int_equal(tokens.len, 0);
-    assert_int_equal(tokens.cap, 0);
+    assert_false(tokens.is_valid);
+    assert_uint_equal(tokens.err, LEXER_NOT_RECOGNIZED_SYMBOL);
 }
 
 static void test_tokenize_wrong_sintax(void **state) {
     (void) state;
 
     char expr[256] = "2 3 / 66 789";
-    ASTNodeArray tokens = {
-        .len = 0,
-        .cap = 0,
-    };
+    TokenizeResult tokens = tokenize(expr);
 
-    assert_int_equal(tokenize(expr, &tokens), LEXER_WRONG_SYNTAX);
-    assert_int_equal(tokens.len, 0);
-    assert_int_equal(tokens.cap, 0);
+    assert_false(tokens.is_valid);
+    assert_uint_equal(tokens.err, LEXER_WRONG_SYNTAX);
 }
 
 static void test_string_to_number_normal(void **state) {
@@ -78,23 +71,24 @@ static void test_string_to_number_normal(void **state) {
 
     char num[16] = "2333t55";
     size_t offset = 0;
-    ASTNode result;
+    ASTNodeResult result = tokenize_number(num, &offset);
 
-    assert_int_equal(tokenize_number(num, &offset, &result), LEXER_OK);
+    assert_true(result.is_valid);
 
     assert_int_equal(offset, 4); // equal to t position in string
-    assert_int_equal(result.type, NODE_INTEGER);
-    assert_int_equal(result.data.integer, 2333);
+    assert_int_equal(result.node.type, NODE_INTEGER);
+    assert_int_equal(result.node.data.integer, 2333);
 }
 
 static void test_string_to_number_overflow(void **state) {
     (void) state;
 
-    // Number is INT64_MAX but with a extra 8 at the end
-    char num[32] = "92233720368547758078yy7";
+    // Number is INT64_MAX but with a extra 899 at the end
+    char num[32] = "92233720368547758079";
     size_t offset = 0;
-    ASTNode result;
-    assert_int_equal(tokenize_number(num, &offset, &result), LEXER_INT_OVERFLOW);
+    ASTNodeResult result = tokenize_number(num, &offset);
+    assert_false(result.is_valid);
+    assert_uint_equal(result.err, LEXER_INT_OVERFLOW);
     // Technically it can trigger a buf overflow error but obvioulsy 
     // it will trigger int overflow error first
 }
