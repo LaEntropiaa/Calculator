@@ -21,27 +21,27 @@ static void test_tokenize_normal_expresion(void **state) {
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 2);
 
-    arraylist_get(tokens.arr, 0, &node);
+    arraylist_get(tokens.arr, 1, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
     assert_int_equal(node.data.binary.op, OP_ADD);
 
-    arraylist_get(tokens.arr, 0, &node);
+    arraylist_get(tokens.arr, 2, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 3);
 
-    arraylist_get(tokens.arr, 0, &node);
+    arraylist_get(tokens.arr, 3, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
     assert_int_equal(node.data.binary.op, OP_DIV);
 
-    arraylist_get(tokens.arr, 0, &node);
+    arraylist_get(tokens.arr, 4, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 66);
 
-    arraylist_get(tokens.arr, 0, &node);
+    arraylist_get(tokens.arr, 5, &node);
     assert_int_equal(node.type, NODE_BINARY_OP);
     assert_int_equal(node.data.binary.op, OP_MUL);
 
-    arraylist_get(tokens.arr, 0, &node);
+    arraylist_get(tokens.arr, 6, &node);
     assert_int_equal(node.type, NODE_INTEGER);
     assert_int_equal(node.data.integer, 789);
 }
@@ -53,7 +53,7 @@ static void test_tokenize_unrecognized_symbol(void **state) {
     TokenizeResult tokens = tokenize(expr);
 
     assert_false(tokens.is_valid);
-    assert_uint_equal(tokens.err, LEXER_WRONG_SYNTAX);
+    assert_uint_equal(tokens.err, LEXER_NOT_RECOGNIZED_SYMBOL);
 }
 
 static void test_tokenize_wrong_sintax(void **state) {
@@ -83,8 +83,8 @@ static void test_string_to_number_normal(void **state) {
 static void test_string_to_number_overflow(void **state) {
     (void) state;
 
-    // Number is INT64_MAX but with a extra 8 at the end
-    char num[32] = "92233720368547758078yy7";
+    // Number is INT64_MAX but with a extra 899 at the end
+    char num[32] = "92233720368547758079";
     size_t offset = 0;
     ASTNodeResult result = tokenize_number(num, &offset);
     assert_false(result.is_valid);

@@ -87,9 +87,10 @@ ASTNodeResult tokenize_number(const char *input, size_t *offset) {
     if (is_integer) {
         new_node.type = NODE_INTEGER;
         I64Result status = string_to_integer(buf);
-        if (status.is_valid == LEXER_OK) {
-            new_node.data.integer = status.number;
+        if (!status.is_valid) {
+            return (ASTNodeResult) {.is_valid = false, .err = status.err};
         }
+        new_node.data.integer = status.number;
         *offset = current;
         return (ASTNodeResult) {.is_valid = true, .node = new_node};
     }

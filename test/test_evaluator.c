@@ -13,10 +13,8 @@ static void test_basic_evaluation(void** state) {
     (void) state;
 
     char expr[256] = "2 + 4 * 40 / 2";
-    ASTNodeArray context;
-
-    tokenize(expr, &context);
-    ParseResult result = parse(&context);
+    TokenizeResult tokens = tokenize(expr);
+    ParseResult result = parse(tokens);
     int64_t value = evaluate(result);
 
     assert_int_equal(value, 82);
