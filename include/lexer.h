@@ -66,12 +66,12 @@ typedef struct {
         LexerErr err;
         int64_t number;
     };
-} I64Result;
+} LexerI64Result;
 
 // Lexer funtions as well as few functionality
 TokenizeResult tokenize(const char* input);
 ASTNodeResult tokenize_number(const char* input, size_t *offset);
-I64Result string_to_integer(const char buf[]);
+LexerI64Result string_to_integer(const char buf[]);
 bool isoperator(int c);
 Operator char_to_operator(int c);
 char operator_to_char(Operator op);
