@@ -4,11 +4,30 @@
 #include "lexer.h"
 #include "arena.h"
 #include "arraylist.h"
+#include <stdbool.h>
 #include <stdint.h>
 
+typedef enum {
+    NODE_INT,
+    NODE_BINARY_OP,
+    NODE_UNARY_OP,
+} NodeType;
+
 typedef struct {
-    ASTNode *head;
-} AST;
+    NodeType type;
+    union {
+        int64_t num;
+        struct {
+            Operator op;
+            struct Node *left;
+            struct Node *right;
+        }binary;
+        struct {
+            Operator op;
+            struct Node *to;
+        }unary;
+    };
+} Node;
 
 typedef enum {
     PARSER_OK = 0,
@@ -24,20 +43,33 @@ typedef struct {
         ParserErr err;
         struct {
             Arena arena;
-            ASTNode *tree;
+            Node *tree;
         };
     };
-} ParseResult;
+} ParserResult;
 
-ASTNode *nud(ArraySlice *slice);
-ASTNode *led(ArraySlice *slice, size_t right_precedence);
+typedef struct  {
+    bool is_valid;
+    union {
+        ParserErr err;
+        Node *node;
+    };
+} NodeResult;
 
-uint8_t prefix_rbp(ASTNode node);
-uint8_t postfix_lbp(ASTNode node);
-uint8_t infix_lbp(ASTNode node);
-uint8_t infix_rbp(ASTNode node);
+typedef struct {
+    bool is_valid;
+    union {
+        ParserErr err;
+        uint8_t num;
+    };
+} ParserU8Result;
 
-ParseResult parse(TokenizeResult tokens);
-ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);
+ParserU8Result prefix_rbp(Node node);
+ParserU8Result postfix_lbp(Node node);
+ParserU8Result infix_lbp(Node node);
+ParserU8Result infix_rbp(Node node);
+
+ParserResult parse(TokenizeResult tokens);
+NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);
 
 #endif // !PARSER_H
