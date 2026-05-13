@@ -37,6 +37,7 @@ typedef enum {
     PARSER_MISSING_OPERAND,
     PARSER_UNMATCHED_PAREN,
     PARSER_OUT_OF_MEMORY,
+    PARSER_INVALID_TOKENIZE,
 } ParserErr;
 
 typedef struct {

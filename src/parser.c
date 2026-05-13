@@ -120,6 +120,8 @@ ParserU8Result infix_rbp(Node node) {
     }
 }
 
+
+
 Node token_to_node(Token token) {
     if (token.type == TOKEN_INTEGER) {
         return (Node) {
@@ -151,7 +153,7 @@ Node token_to_node(Token token) {
             };
         case OP_POW:
             return (Node) {
-                .type = NODE_UNARY_OP,
+                .type = NODE_BINARY_OP,
                 .binary.op = token.op,
             };
         case OP_FACTORIAL:
@@ -173,17 +175,27 @@ Node token_to_node(Token token) {
 }
 
 ParserResult parse(TokenizeResult tokens) {
+    if (!tokens.is_valid) {
+        return (ParserResult) {
+            .is_valid = false,
+            .err = PARSER_INVALID_TOKENIZE,
+        };
+    }
+
     ArraySlice *context = arraylist_slice(tokens.arr, 0, arraylist_size(tokens.arr));
     Arena arena = arena_init(sizeof(Node) * arraylist_size(tokens.arr)).arena;
 
     NodeResult result = parse_expr(context, &arena, 0);
     if (!result.is_valid) {
+        arena_destroy(&arena);
+        arraylist_destroy(&tokens.arr);
         return (ParserResult) {
             .is_valid = false,
             .err = result.err,
         };
     }
 
+    arraylist_destroy(&tokens.arr);
     return (ParserResult) {
         .is_valid = true,
         .arena = arena,
@@ -351,7 +363,6 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
 
         break;
     }
-
 
     // Final: return left side
     return (NodeResult){

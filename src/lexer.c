@@ -27,6 +27,7 @@ TokenizeResult tokenize(const char *input) {
             TokenResult result = tokenize_number(input, &offset);
 
             if (!result.is_valid) {
+                arraylist_destroy(&arr);
                 return (TokenizeResult) {.is_valid = false, .err = result.err};
             }
 
@@ -41,6 +42,7 @@ TokenizeResult tokenize(const char *input) {
         } else if (isspace(input[offset])) {
             // Nothing...
         } else {
+            arraylist_destroy(&arr);
             return (TokenizeResult) {
                 .is_valid = false,
                 .err = LEXER_NOT_RECOGNIZED_SYMBOL};
@@ -50,6 +52,7 @@ TokenizeResult tokenize(const char *input) {
     }
 
     if (arraylist_size(arr) < 1) {
+        arraylist_destroy(&arr);
         return (TokenizeResult) {.is_valid = false, .err = LEXER_EMPTY_INPUT};
     }
 
