@@ -11,9 +11,10 @@ typedef enum {
     NODE_INT,
     NODE_BINARY_OP,
     NODE_UNARY_OP,
+    NODE_PARENTHESIS,
 } NodeType;
 
-typedef struct {
+typedef struct Node {
     NodeType type;
     union {
         int64_t num;
@@ -26,6 +27,7 @@ typedef struct {
             Operator op;
             struct Node *to;
         }unary;
+        Operator par;
     };
 } Node;
 
@@ -63,6 +65,8 @@ typedef struct {
         uint8_t num;
     };
 } ParserU8Result;
+
+Node token_to_node(Token token);
 
 ParserU8Result prefix_rbp(Node node);
 ParserU8Result postfix_lbp(Node node);
