@@ -101,6 +101,20 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         )
     );
 
+    arrayslice_next(slice, left_side);
+
+    if (left_side->type == NODE_PARENTHESIS &&
+        left_side->data.parenthesis.op == OP_START_PAR) {
+        left_side = parse_expr(slice, arena, 0);
+        // HERE CHEKC LATER if slice.next != ')'
+        ASTNode *end_par;
+        arrayslice_next(slice, &end_par);
+        if (end_par->type != NODE_PARENTHESIS ||
+            end_par->data.parenthesis.op != OP_END_PAR) {
+            // todo
+        }
+        return left_side;
+    }
     // if is unary then take prefix bp and continue
     // to the right, no need to allocate left side
     // because we just did and right side
@@ -110,10 +124,7 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         ASTNode *righ_side = parse_expr(slice, arena, rbp);
 
         left_side->data.unary.val = righ_side;
-        return left_side;
     }
-    // Should check if is Integer or number
-    arrayslice_next(slice, left_side);
 
     while (true) {
         // Second: Get next one and checn bp
@@ -153,47 +164,54 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
             new_node->data.unary.val = left_side;
 
             left_side = new_node;
+            continue;
         }
+
+        // check if it has infix or not, if not then error
         uint8_t rbp = infix_rbp(operator);
         uint8_t lbp = infix_lbp(operator);
 
-        // If lbp is LESS then stop recursion,
-        // we found the next smaller binding power
-        // or the one with more precedence
-        if (lbp < min_bp) {
-            break;
+        if (rbp != 255 && lbp != 255) {
+
+            // If lbp is LESS then stop recursion,
+            // we found the next smaller binding power
+            // or the one with more precedence
+            if (lbp < min_bp) {
+                break;
+            }
+
+
+            // If NOT, then we continue wtching ahead
+            // for the next one but taking our current 
+            // concern that is rbp of the current operator
+            arrayslice_next(slice, NULL);
+            ASTNode *right_side = parse_expr(slice, arena, rbp);
+
+            arena_ensure_capacity(
+                arena,
+                sizeof(ASTNode),
+                alignof(ASTNode));
+            ASTNode *new_node = arena_unwrap_pointer(
+                arena_alloc(
+                    arena, 
+                    sizeof(ASTNode), 
+                    alignof(ASTNode)
+                )
+            );
+            *new_node = operator;
+
+            new_node->data.binary.left = left_side;
+            new_node->data.binary.right = right_side;
+
+            left_side = new_node;
+
+            continue;
         }
 
-
-        // If NOT, then we continue wtching ahead
-        // for the next one but taking our current 
-        // concern that is rbp of the current operator
-        arrayslice_next(slice, NULL);
-        ASTNode *right_side = parse_expr(slice, arena, rbp);
-
-        arena_ensure_capacity(
-            arena,
-            sizeof(ASTNode),
-            alignof(ASTNode));
-        ASTNode *new_node = arena_unwrap_pointer(
-            arena_alloc(
-                arena, 
-                sizeof(ASTNode), 
-                alignof(ASTNode)
-            )
-        );
-        *new_node = operator;
-
-        new_node->data.binary.left = left_side;
-        new_node->data.binary.right = right_side;
-
-        left_side = new_node;
+        break;
     }
 
 
     // Final: return left side
     return left_side;
 }
-
-
-

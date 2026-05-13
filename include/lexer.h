@@ -11,6 +11,7 @@ typedef enum {
     NODE_INTEGER,
     NODE_BINARY_OP,
     NODE_UNARY_OP,
+    NODE_PARENTHESIS,
 } ASTNodeType;
 
 // For classify operators
@@ -21,6 +22,8 @@ typedef enum {
     OP_DIV,
     OP_POW,
     OP_FACTORIAL,
+    OP_START_PAR,
+    OP_END_PAR,
 } Operator;
 
 typedef enum {
@@ -46,6 +49,10 @@ typedef struct ASTNode {
             struct ASTNode *val;
             Operator op;
         } unary;
+        struct {
+            struct ASTNode *val;
+            Operator op;
+        } parenthesis;
     } data;
 } ASTNode;
 
