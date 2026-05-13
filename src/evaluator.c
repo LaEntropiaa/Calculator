@@ -3,6 +3,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include <stdint.h>
+#include <math.h>
 
 
 int64_t evaluate_tree(ASTNode *tree) {
@@ -20,7 +21,8 @@ int64_t evaluate_tree(ASTNode *tree) {
                 return evaluate_tree(left) * evaluate_tree(right);
             case OP_DIV:
                 return evaluate_tree(left) / evaluate_tree(right);
-
+            case OP_POW:
+                return pow(evaluate_tree(left), evaluate_tree(right));
         }
     }
 

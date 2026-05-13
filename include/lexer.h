@@ -10,6 +10,7 @@
 typedef enum {
     NODE_INTEGER,
     NODE_BINARY_OP,
+    NODE_UNARY_OP,
 } ASTNodeType;
 
 // For classify operators
@@ -17,7 +18,8 @@ typedef enum {
     OP_ADD,
     OP_SUB,
     OP_MUL,
-    OP_DIV
+    OP_DIV,
+    OP_POW,
 } Operator;
 
 typedef enum {
@@ -26,8 +28,6 @@ typedef enum {
     LEXER_FAILED_NUMBER_CONVERSION,
     LEXER_NOT_RECOGNIZED_SYMBOL,
     LEXER_EMPTY_INPUT,
-    LEXER_NULL_ARG,
-    LEXER_WRONG_SYNTAX,
     LEXER_BUF_OVERFLOW,
 } LexerErr;
 
@@ -41,6 +41,10 @@ typedef struct ASTNode {
             struct ASTNode *right;
             Operator op;
         } binary;
+        struct {
+            struct ASTNode *val;
+            Operator op;
+        } unary;
     } data;
 } ASTNode;
 

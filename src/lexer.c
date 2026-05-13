@@ -131,6 +131,7 @@ bool isoperator(int c) {
         case '-':
         case '/':
         case '*':
+        case '^':
             return true;
         default:
             return false;
@@ -151,6 +152,9 @@ Operator char_to_operator(int c) {
         case '/':
             return OP_DIV;
             break;
+        case '^':
+            return OP_POW;
+            break;
         default: // I mean shouldn't be used, we assume
             return -1;
     }
@@ -166,5 +170,7 @@ char operator_to_char(Operator op) {
             return '*';
         case OP_DIV:
             return '/';
+        case OP_POW:
+            return '^';
     }
 }

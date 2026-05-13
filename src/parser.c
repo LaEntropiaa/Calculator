@@ -6,7 +6,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint8_t node_lbp(ASTNode node) {
+uint8_t prefix_rbp(ASTNode node) {
+    if (node.type == NODE_INTEGER) {
+        return 0;
+    }
+
+    switch (node.data.unary.op) {
+        case OP_SUB:
+        case OP_ADD:
+            return 5;
+        default:
+            return -1;
+    }
+}
+
+uint8_t infix_lbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
         return 0;
     }
@@ -19,12 +33,14 @@ uint8_t node_lbp(ASTNode node) {
         case OP_DIV:
         case OP_MUL:
             return 20;
+        case OP_POW:
+            return 31;
         default:
             return 0;
     }
 }
 
-uint8_t node_rbp(ASTNode node) {
+uint8_t infix_rbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
         return 0;
     }
@@ -37,6 +53,8 @@ uint8_t node_rbp(ASTNode node) {
         case OP_DIV:
         case OP_MUL:
             return 21;
+        case OP_POW:
+            return 30;
         default:
             return 0;
     }
@@ -53,12 +71,14 @@ ParseResult parse(TokenizeResult tokens) {
 }
 
 ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
+    // First: Consume a first number
     arena_ensure_capacity(
         arena,
         sizeof(ASTNode),
         alignof(ASTNode)
-    );
+    ); // shouldn't fail but if it does then what a shame
 
+    // Get pointer in the arena
     ASTNode *left_side = arena_unwrap_pointer(
         arena_alloc(
             arena,
@@ -67,22 +87,33 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         )
     );
 
+    // Should check if is Integer or number
     arrayslice_next(slice, left_side);
 
     while (true) {
+        // Second: Get next one and checn bp
         if (!arrayslice_is_valid(slice)) {
             break;
         }
 
         ASTNode operator;
+        // Here should chekc if is operator not some bs
+        // Third, get operator and binding powers
         arrayslice_peek(slice, &operator);
-        uint8_t rbp = node_rbp(operator);
-        uint8_t lbp = node_lbp(operator);
+        uint8_t rbp = infix_rbp(operator);
+        uint8_t lbp = infix_lbp(operator);
 
+        // If lbp is LESS then stop recursion,
+        // we found the next smaller binding power
+        // or the one with more precedence
         if (lbp < min_bp) {
             break;
         }
 
+
+        // If NOT, then we continue wtching ahead
+        // for the next one but taking our current 
+        // concern that is rbp of the current operator
         arrayslice_next(slice, NULL);
         ASTNode *right_side = parse_expr(slice, arena, rbp);
 
@@ -106,6 +137,7 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
     }
 
 
+    // Final: return left side
     return left_side;
 }
 
