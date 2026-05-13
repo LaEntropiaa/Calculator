@@ -57,6 +57,14 @@ typedef struct  {
         ParserErr err;
         Node *node;
     };
+} TreeResult;
+
+typedef struct {
+    bool is_valid;
+    union {
+        ParserErr err;
+        Node node;
+    };
 } NodeResult;
 
 typedef struct {
@@ -75,6 +83,6 @@ ParserU8Result infix_lbp(Node node);
 ParserU8Result infix_rbp(Node node);
 
 ParserResult parse(TokenizeResult tokens);
-NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);
+TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);
 
 #endif // !PARSER_H

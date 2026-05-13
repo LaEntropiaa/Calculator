@@ -185,7 +185,7 @@ ParserResult parse(TokenizeResult tokens) {
     ArraySlice *context = arraylist_slice(tokens.arr, 0, arraylist_size(tokens.arr));
     Arena arena = arena_init(sizeof(Node) * arraylist_size(tokens.arr)).arena;
 
-    NodeResult result = parse_expr(context, &arena, 0);
+    TreeResult result = parse_expr(context, &arena, 0);
     if (!result.is_valid) {
         arena_destroy(&arena);
         arraylist_destroy(&tokens.arr);
@@ -202,7 +202,7 @@ ParserResult parse(TokenizeResult tokens) {
         .tree = result.node};
 }
 
-NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
+TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
     arena_ensure_capacity(
         arena,
         sizeof(Node),
@@ -225,7 +225,7 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
 
     if (left_side->type == NODE_PARENTHESIS &&
         left_side->par == OP_START_PAR) {
-        NodeResult result = parse_expr(slice, arena, 0);
+        TreeResult result = parse_expr(slice, arena, 0);
 
         if (!result.is_valid) {
             return result;
@@ -241,12 +241,12 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
 
         if (end_par.type != TOKEN_OPERATOR ||
             end_par.op != OP_END_PAR) {
-            return (NodeResult) {
+            return (TreeResult) {
                 .is_valid = false,
                 .err = PARSER_UNMATCHED_PAREN,
             };
         }
-        return (NodeResult) {
+        return (TreeResult) {
             .is_valid = true,
             .node = left_side,
         };
@@ -256,13 +256,13 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
     if (left_side->type == NODE_UNARY_OP) {
         ParserU8Result rbp_result = prefix_rbp(*left_side);
         if (!rbp_result.is_valid) {
-            return (NodeResult) {
+            return (TreeResult) {
                 .is_valid = false,
                 .err = rbp_result.err,
             };
         }
 
-        NodeResult righ_side_result = parse_expr(slice, arena, rbp_result.num);
+        TreeResult righ_side_result = parse_expr(slice, arena, rbp_result.num);
         if (!righ_side_result.is_valid) {
             return righ_side_result;
         }
@@ -278,7 +278,7 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         Token operator_token;
         arrayslice_peek(slice, &operator_token);
         if (operator_token.type != TOKEN_OPERATOR) {
-            return (NodeResult) {
+            return (TreeResult) {
                 .is_valid = false,
                 .err = PARSER_MISSING_OPERAND,
             };
@@ -317,7 +317,7 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         ParserU8Result rbp_result = infix_rbp(operator_node);
         ParserU8Result lbp_result = infix_lbp(operator_node);
         if (!rbp_result.is_valid || !lbp_result.is_valid) {
-            return (NodeResult) {
+            return (TreeResult) {
                 .is_valid = false,
                 .err = PARSER_UNEXPECTED_TOKEN,
             };
@@ -335,7 +335,7 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
             // for the next one but taking our current 
             // concern that is rbp of the current operator
             arrayslice_next(slice, NULL);
-            NodeResult right_side_result = parse_expr(slice, arena, rbp_result.num);
+            TreeResult right_side_result = parse_expr(slice, arena, rbp_result.num);
             if (!right_side_result.is_valid) {
                 return right_side_result;
             }
@@ -365,7 +365,7 @@ NodeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
     }
 
     // Final: return left side
-    return (NodeResult){
+    return (TreeResult){
         .is_valid = true,
         .node = left_side,
     };
