@@ -61,7 +61,7 @@ typedef struct {
     bool is_valid;
     union {
         LexerErr err;
-        int64_t number;
+        int64_t num;
     };
 } LexerI64Result;
 
