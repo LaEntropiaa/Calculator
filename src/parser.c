@@ -7,15 +7,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-ParserU8Result prefix_rbp(Node node) {
-    if (node.type != NODE_UNARY_OP) {
+ParserU8Result prefix_rbp(Token token) {
+    if (token.type == TOKEN_INTEGER) {
         return (ParserU8Result) {
             .is_valid = false,
-            .err =  PARSER_UNEXPECTED_TOKEN
+            .err = PARSER_UNEXPECTED_TOKEN,
         };
     }
-
-    switch (node.unary.op) {
+    switch (token.op) {
         case OP_SUB:
         case OP_ADD:
             return (ParserU8Result) {
@@ -30,15 +29,15 @@ ParserU8Result prefix_rbp(Node node) {
     }
 }
 
-ParserU8Result postfix_lbp(Node node) {
-    if (node.type != NODE_UNARY_OP) {
+ParserU8Result postfix_lbp(Token token) {
+    if (token.type != TOKEN_INTEGER) {
         return (ParserU8Result) {
             .is_valid = false,
             .err = PARSER_UNEXPECTED_TOKEN,
         };
     }
 
-    switch (node.unary.op) {
+    switch (token.op) {
         case OP_FACTORIAL:
             return (ParserU8Result) {
                 .is_valid = true,
@@ -52,15 +51,15 @@ ParserU8Result postfix_lbp(Node node) {
     }
 }
 
-ParserU8Result infix_lbp(Node node) {
-    if (node.type != NODE_BINARY_OP) {
+ParserU8Result infix_lbp(Token token) {
+    if (token.type != TOKEN_INTEGER) {
         return (ParserU8Result) {
             .is_valid = false,
             .err = PARSER_UNEXPECTED_TOKEN,
         };
     }
 
-    switch (node.binary.op) {
+    switch (token.op) {
         case OP_ADD:
         case OP_SUB:
             return (ParserU8Result) {
@@ -86,15 +85,15 @@ ParserU8Result infix_lbp(Node node) {
     }
 }
 
-ParserU8Result infix_rbp(Node node) {
-    if (node.type != NODE_BINARY_OP) {
+ParserU8Result infix_rbp(Token token) {
+    if (token.type != TOKEN_INTEGER) {
         return (ParserU8Result) {
             .is_valid = false,
             .err = PARSER_UNEXPECTED_TOKEN,
         };
     }
 
-    switch (node.binary.op) {
+    switch (token.op) {
         case OP_ADD:
         case OP_SUB:
             return (ParserU8Result) {
@@ -151,7 +150,7 @@ TreeResult led(
             node->type = NODE_BINARY_OP;
             node->binary.op = token.op;
 
-            ParserU8Result rbp_result = infix_rbp(*node);
+            ParserU8Result rbp_result = infix_rbp(token);
             if (!rbp_result.is_valid) {
                 return (TreeResult) {
                     .is_valid = false,
@@ -254,7 +253,7 @@ TreeResult nud(ArraySlice *slice, Arena *arena, Token token) {
             node->type = NODE_UNARY_OP;
             node->unary.op = token.op;
 
-            ParserU8Result rbp_result = prefix_rbp(*node);
+            ParserU8Result rbp_result = prefix_rbp(token);
             if (!rbp_result.is_valid) {
                 return (TreeResult) {
                     .is_valid = false,
@@ -323,7 +322,7 @@ TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
     if (arrayslice_next(slice, &current_token) != ARRLIST_OK) {
         return (TreeResult) {
             .is_valid = false,
-            .err = PARSER_UNEXMECTED_EOF,
+            .err = PARSER_UNEXPECTED_EOF,
         };
     }
 
@@ -343,12 +342,7 @@ TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
             break;
         }
 
-        Node operator_node = {
-            .type = NODE_BINARY_OP,
-            .binary.op = operator_token.op,
-        };
-
-        ParserU8Result postfix_lbp_result = postfix_lbp(operator_node);
+        ParserU8Result postfix_lbp_result = postfix_lbp(operator_token);
 
         if (postfix_lbp_result.is_valid) {
             if (postfix_lbp_result.num < min_bp) {
@@ -369,7 +363,7 @@ TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         }
 
         // Path for infix basically
-        ParserU8Result lbp_result = infix_lbp(operator_node);
+        ParserU8Result lbp_result = infix_lbp(operator_token);
 
         if (!lbp_result.is_valid) {
             break;

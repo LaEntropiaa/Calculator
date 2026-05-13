@@ -38,7 +38,7 @@ typedef enum {
     PARSER_UNMATCHED_PAREN,
     PARSER_OUT_OF_MEMORY,
     PARSER_INVALID_TOKENIZE,
-    PARSER_UNEXMECTED_EOF,
+    PARSER_UNEXPECTED_EOF,
 } ParserErr;
 
 typedef struct {
@@ -76,14 +76,13 @@ typedef struct {
     };
 } ParserU8Result;
 
-Node token_to_node(Token token);
 TreeResult nud(ArraySlice *slice, Arena *arena, Token token); // Null denotation
 TreeResult led(ArraySlice *slice, Arena *arena, Node *left, Token token); // Left denotation
 
-ParserU8Result prefix_rbp(Node node);
-ParserU8Result postfix_lbp(Node node);
-ParserU8Result infix_lbp(Node node);
-ParserU8Result infix_rbp(Node node);
+ParserU8Result prefix_rbp(Token token);
+ParserU8Result postfix_lbp(Token token);
+ParserU8Result infix_lbp(Token token);
+ParserU8Result infix_rbp(Token token);
 
 ParserResult parse(TokenizeResult tokens);
 TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);
