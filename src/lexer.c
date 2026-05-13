@@ -155,6 +155,9 @@ Operator char_to_operator(int c) {
         case '^':
             return OP_POW;
             break;
+        case '!':
+            return OP_FACTORIAL;
+            break;
         default: // I mean shouldn't be used, we assume
             return -1;
     }
@@ -172,5 +175,9 @@ char operator_to_char(Operator op) {
             return '/';
         case OP_POW:
             return '^';
+        case OP_FACTORIAL:
+            return '!';
+        default:
+            return EOF;
     }
 }

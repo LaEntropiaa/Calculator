@@ -14,9 +14,23 @@ uint8_t prefix_rbp(ASTNode node) {
     switch (node.data.unary.op) {
         case OP_SUB:
         case OP_ADD:
-            return 5;
+            return 30;
         default:
             return -1;
+    }
+}
+
+uint8_t postfix_lbp(ASTNode node) {
+    if (node.type == NODE_INTEGER) {
+        return 0;
+    }
+
+    switch (node.data.unary.op) {
+        case OP_FACTORIAL:
+            return 40;
+        default:
+            // needs to be dealt with with resulttypes
+            return 255;
     }
 }
 
@@ -34,7 +48,7 @@ uint8_t infix_lbp(ASTNode node) {
         case OP_MUL:
             return 20;
         case OP_POW:
-            return 31;
+            return 51;
         default:
             return 0;
     }
@@ -54,7 +68,7 @@ uint8_t infix_rbp(ASTNode node) {
         case OP_MUL:
             return 21;
         case OP_POW:
-            return 30;
+            return 50;
         default:
             return 0;
     }
@@ -107,10 +121,39 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
             break;
         }
 
+        // Here check if not OP error
+
         ASTNode operator;
         // Here should chekc if is operator not some bs
         // Third, get operator and binding powers
         arrayslice_peek(slice, &operator);
+
+        // temporary for bad error handling
+        if (postfix_lbp(operator) != 255) {
+            if (postfix_lbp(operator) < min_bp) {
+                break;
+            }
+
+            // allocate operator
+            arrayslice_next(slice, NULL);
+            arena_ensure_capacity(
+                arena,
+                sizeof(ASTNode),
+                alignof(ASTNode));
+            ASTNode *new_node = arena_unwrap_pointer(
+                arena_alloc(
+                    arena, 
+                    sizeof(ASTNode), 
+                    alignof(ASTNode)
+                )
+            );
+            *new_node = operator;
+
+
+            new_node->data.unary.val = left_side;
+
+            left_side = new_node;
+        }
         uint8_t rbp = infix_rbp(operator);
         uint8_t lbp = infix_lbp(operator);
 
