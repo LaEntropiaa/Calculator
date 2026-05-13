@@ -32,8 +32,8 @@ typedef struct {
 ASTNode *nud(ArraySlice *slice);
 ASTNode *led(ArraySlice *slice, size_t right_precedence);
 
-uint8_t prefix_lbp(ASTNode node);
 uint8_t prefix_rbp(ASTNode node);
+uint8_t postfix_lbp(ASTNode node);
 uint8_t infix_lbp(ASTNode node);
 uint8_t infix_rbp(ASTNode node);
 

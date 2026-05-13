@@ -87,6 +87,17 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
         )
     );
 
+    // if is unary then take prefix bp and continue
+    // to the right, no need to allocate left side
+    // because we just did and right side
+    // WILL return a valid allocated pointer.
+    if (left_side->type == NODE_UNARY_OP) {
+        uint8_t rbp = prefix_rbp(*left_side);
+        ASTNode *righ_side = parse_expr(slice, arena, rbp);
+
+        left_side->data.unary.val = righ_side;
+        return left_side;
+    }
     // Should check if is Integer or number
     arrayslice_next(slice, left_side);
 
