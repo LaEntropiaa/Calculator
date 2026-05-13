@@ -119,8 +119,114 @@ ParserU8Result infix_rbp(Node node) {
             };
     }
 }
+NodeResult led(Token token) {
+    if (token.type == TOKEN_INTEGER) {
+        return (NodeResult) {
+            .is_valid = false,
+            .err = PARSER_UNEXPECTED_TOKEN,
+        };
+    }
 
+    switch (token.op) {
+        case OP_ADD:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_BINARY_OP,
+                    .binary.op = token.op,
+                }
+            };
+        case OP_SUB:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_BINARY_OP,
+                    .binary.op = token.op,
+                }
+            };
+        case OP_MUL:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_BINARY_OP,
+                    .binary.op = token.op,
+                }
+            };
+        case OP_DIV:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_BINARY_OP,
+                    .binary.op = token.op,
+                }
+            };
+        case OP_POW:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_BINARY_OP,
+                    .binary.op = token.op,
+                }
+            };
+        case OP_FACTORIAL:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_UNARY_OP,
+                    .unary.op = token.op,
+                }
+            };
+        default:
+            return (NodeResult) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
+    }
+}
 
+NodeResult nud(Token token) {
+    if (token.type == TOKEN_INTEGER) {
+        return (NodeResult) {
+            .is_valid = true,
+            .node = (Node) {
+                .type = NODE_INT,
+                .num = token.num,
+            }
+        };
+    }
+
+    switch (token.op) {
+        case OP_START_PAR:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_PARENTHESIS,
+                    .par = token.op,
+                }
+            };
+        case OP_SUB:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_UNARY_OP,
+                    .unary.op = token.op,
+                }
+            };
+        case OP_ADD:
+            return (NodeResult) {
+                .is_valid = true,
+                .node = (Node) {
+                    .type = NODE_UNARY_OP,
+                    .unary.op = token.op,
+                }
+            };
+        default:
+            return (NodeResult) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
+    }
+}
 
 Node token_to_node(Token token) {
     if (token.type == TOKEN_INTEGER) {

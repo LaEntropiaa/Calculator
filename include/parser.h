@@ -76,6 +76,8 @@ typedef struct {
 } ParserU8Result;
 
 Node token_to_node(Token token);
+NodeResult nud(Token token); // Null denotation
+NodeResult led(Token token); // Left denotation
 
 ParserU8Result prefix_rbp(Node node);
 ParserU8Result postfix_lbp(Node node);
