@@ -6,7 +6,35 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint8_t node_lbp(ASTNode node) {
+uint8_t prefix_rbp(ASTNode node) {
+    if (node.type == NODE_INTEGER) {
+        return 0;
+    }
+
+    switch (node.data.unary.op) {
+        case OP_SUB:
+        case OP_ADD:
+            return 30;
+        default:
+            return -1;
+    }
+}
+
+uint8_t postfix_lbp(ASTNode node) {
+    if (node.type == NODE_INTEGER) {
+        return 0;
+    }
+
+    switch (node.data.unary.op) {
+        case OP_FACTORIAL:
+            return 40;
+        default:
+            // needs to be dealt with with resulttypes
+            return 255;
+    }
+}
+
+uint8_t infix_lbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
         return 0;
     }
@@ -19,12 +47,14 @@ uint8_t node_lbp(ASTNode node) {
         case OP_DIV:
         case OP_MUL:
             return 20;
+        case OP_POW:
+            return 51;
         default:
             return 0;
     }
 }
 
-uint8_t node_rbp(ASTNode node) {
+uint8_t infix_rbp(ASTNode node) {
     if (node.type == NODE_INTEGER) {
         return 0;
     }
@@ -37,6 +67,8 @@ uint8_t node_rbp(ASTNode node) {
         case OP_DIV:
         case OP_MUL:
             return 21;
+        case OP_POW:
+            return 50;
         default:
             return 0;
     }
@@ -53,12 +85,14 @@ ParseResult parse(TokenizeResult tokens) {
 }
 
 ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
+    // First: Consume a first number
     arena_ensure_capacity(
         arena,
         sizeof(ASTNode),
         alignof(ASTNode)
-    );
+    ); // shouldn't fail but if it does then what a shame
 
+    // Get pointer in the arena
     ASTNode *left_side = arena_unwrap_pointer(
         arena_alloc(
             arena,
@@ -69,45 +103,115 @@ ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
 
     arrayslice_next(slice, left_side);
 
+    if (left_side->type == NODE_PARENTHESIS &&
+        left_side->data.parenthesis.op == OP_START_PAR) {
+        left_side = parse_expr(slice, arena, 0);
+        // HERE CHEKC LATER if slice.next != ')'
+        ASTNode *end_par;
+        arrayslice_next(slice, &end_par);
+        if (end_par->type != NODE_PARENTHESIS ||
+            end_par->data.parenthesis.op != OP_END_PAR) {
+            // todo
+        }
+        return left_side;
+    }
+    // if is unary then take prefix bp and continue
+    // to the right, no need to allocate left side
+    // because we just did and right side
+    // WILL return a valid allocated pointer.
+    if (left_side->type == NODE_UNARY_OP) {
+        uint8_t rbp = prefix_rbp(*left_side);
+        ASTNode *righ_side = parse_expr(slice, arena, rbp);
+
+        left_side->data.unary.val = righ_side;
+    }
+
     while (true) {
+        // Second: Get next one and checn bp
         if (!arrayslice_is_valid(slice)) {
             break;
         }
 
-        ASTNode operator;
-        arrayslice_peek(slice, &operator);
-        uint8_t rbp = node_rbp(operator);
-        uint8_t lbp = node_lbp(operator);
+        // Here check if not OP error
 
-        if (lbp < min_bp) {
-            break;
+        ASTNode operator;
+        // Here should chekc if is operator not some bs
+        // Third, get operator and binding powers
+        arrayslice_peek(slice, &operator);
+
+        // temporary for bad error handling
+        if (postfix_lbp(operator) != 255) {
+            if (postfix_lbp(operator) < min_bp) {
+                break;
+            }
+
+            // allocate operator
+            arrayslice_next(slice, NULL);
+            arena_ensure_capacity(
+                arena,
+                sizeof(ASTNode),
+                alignof(ASTNode));
+            ASTNode *new_node = arena_unwrap_pointer(
+                arena_alloc(
+                    arena, 
+                    sizeof(ASTNode), 
+                    alignof(ASTNode)
+                )
+            );
+            *new_node = operator;
+
+
+            new_node->data.unary.val = left_side;
+
+            left_side = new_node;
+            continue;
         }
 
-        arrayslice_next(slice, NULL);
-        ASTNode *right_side = parse_expr(slice, arena, rbp);
+        // check if it has infix or not, if not then error
+        uint8_t rbp = infix_rbp(operator);
+        uint8_t lbp = infix_lbp(operator);
 
-        arena_ensure_capacity(
-            arena,
-            sizeof(ASTNode),
-            alignof(ASTNode));
-        ASTNode *new_node = arena_unwrap_pointer(
-            arena_alloc(
-                arena, 
-                sizeof(ASTNode), 
-                alignof(ASTNode)
-            )
-        );
-        *new_node = operator;
+        if (rbp != 255 && lbp != 255) {
 
-        new_node->data.binary.left = left_side;
-        new_node->data.binary.right = right_side;
+            // If lbp is LESS then stop recursion,
+            // we found the next smaller binding power
+            // or the one with more precedence
+            if (lbp < min_bp) {
+                break;
+            }
 
-        left_side = new_node;
+
+            // If NOT, then we continue wtching ahead
+            // for the next one but taking our current 
+            // concern that is rbp of the current operator
+            arrayslice_next(slice, NULL);
+            ASTNode *right_side = parse_expr(slice, arena, rbp);
+
+            arena_ensure_capacity(
+                arena,
+                sizeof(ASTNode),
+                alignof(ASTNode));
+            ASTNode *new_node = arena_unwrap_pointer(
+                arena_alloc(
+                    arena, 
+                    sizeof(ASTNode), 
+                    alignof(ASTNode)
+                )
+            );
+            *new_node = operator;
+
+            new_node->data.binary.left = left_side;
+            new_node->data.binary.right = right_side;
+
+            left_side = new_node;
+
+            continue;
+        }
+
+        break;
     }
 
 
+    // Final: return left side
     return left_side;
 }
-
-
-

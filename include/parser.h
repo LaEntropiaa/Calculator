@@ -32,8 +32,10 @@ typedef struct {
 ASTNode *nud(ArraySlice *slice);
 ASTNode *led(ArraySlice *slice, size_t right_precedence);
 
-uint8_t node_lbp(ASTNode node);
-uint8_t node_rbp(ASTNode node);
+uint8_t prefix_rbp(ASTNode node);
+uint8_t postfix_lbp(ASTNode node);
+uint8_t infix_lbp(ASTNode node);
+uint8_t infix_rbp(ASTNode node);
 
 ParseResult parse(TokenizeResult tokens);
 ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp);

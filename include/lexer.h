@@ -10,6 +10,8 @@
 typedef enum {
     NODE_INTEGER,
     NODE_BINARY_OP,
+    NODE_UNARY_OP,
+    NODE_PARENTHESIS,
 } ASTNodeType;
 
 // For classify operators
@@ -17,7 +19,11 @@ typedef enum {
     OP_ADD,
     OP_SUB,
     OP_MUL,
-    OP_DIV
+    OP_DIV,
+    OP_POW,
+    OP_FACTORIAL,
+    OP_START_PAR,
+    OP_END_PAR,
 } Operator;
 
 typedef enum {
@@ -26,8 +32,6 @@ typedef enum {
     LEXER_FAILED_NUMBER_CONVERSION,
     LEXER_NOT_RECOGNIZED_SYMBOL,
     LEXER_EMPTY_INPUT,
-    LEXER_NULL_ARG,
-    LEXER_WRONG_SYNTAX,
     LEXER_BUF_OVERFLOW,
 } LexerErr;
 
@@ -41,6 +45,14 @@ typedef struct ASTNode {
             struct ASTNode *right;
             Operator op;
         } binary;
+        struct {
+            struct ASTNode *val;
+            Operator op;
+        } unary;
+        struct {
+            struct ASTNode *val;
+            Operator op;
+        } parenthesis;
     } data;
 } ASTNode;
 
@@ -66,12 +78,12 @@ typedef struct {
         LexerErr err;
         int64_t number;
     };
-} I64Result;
+} LexerI64Result;
 
 // Lexer funtions as well as few functionality
 TokenizeResult tokenize(const char* input);
 ASTNodeResult tokenize_number(const char* input, size_t *offset);
-I64Result string_to_integer(const char buf[]);
+LexerI64Result string_to_integer(const char buf[]);
 bool isoperator(int c);
 Operator char_to_operator(int c);
 char operator_to_char(Operator op);
