@@ -2,36 +2,113 @@
 #include "arena.h"
 #include "lexer.h"
 #include "parser.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
 
 
-int64_t evaluate_tree(ASTNode *tree) {
+EvaluatorResult evaluate_tree(Node *tree) {
     if (tree->type == NODE_BINARY_OP) {
-        Operator op = tree->data.binary.op;
-        ASTNode *left = tree->data.binary.left;
-        ASTNode *right = tree->data.binary.right;
-        
-        switch (op) {
-            case OP_ADD:
-                return evaluate_tree(left) + evaluate_tree(right);
-            case OP_SUB:
-                return evaluate_tree(left) - evaluate_tree(right);
-            case OP_MUL:
-                return evaluate_tree(left) * evaluate_tree(right);
-            case OP_DIV:
-                return evaluate_tree(left) / evaluate_tree(right);
-            case OP_POW:
-                return pow(evaluate_tree(left), evaluate_tree(right));
-        }
+        return evaluate_binary(tree);
+    } else if (tree->type == NODE_UNARY_OP) {
+        return evaluate_unary(tree);
     }
 
-    int64_t return_val = tree->data.integer;
-    return return_val;
+    return (EvaluatorResult) {
+        .is_valid = true,
+        .val = tree->num,
+    };
 }
 
-int64_t evaluate(ParseResult context) {
-    int64_t result = evaluate_tree(context.tree);
+EvaluatorResult evaluate_binary(Node *tree) {
+    Operator op = tree->binary.op;
+    Node *left = tree->binary.left;
+    Node *right = tree->binary.right;
+    
+    EvaluatorResult left_result = evaluate_tree(left);
+    EvaluatorResult right_result = evaluate_tree(right);
+    if (!left_result.is_valid) {
+        return left_result;
+    }
+
+    if (!left_result.is_valid) {
+        return left_result;
+    }
+
+    switch (op) {
+        case OP_ADD:
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = left_result.val + right_result.val,
+            };
+        case OP_SUB:
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = left_result.val - right_result.val,
+            };
+        case OP_MUL:
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = left_result.val * right_result.val,
+            };
+        case OP_DIV: 
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = left_result.val / right_result.val,
+            };
+        case OP_POW: 
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = pow(left_result.val, right_result.val),
+            };
+        default:
+            return (EvaluatorResult) {
+                .is_valid = false,
+                .err = EVALUATOR_INVALID_TREE,
+            };
+    }
+}
+
+EvaluatorResult evaluate_unary(Node *tree) {
+    Operator op = tree->unary.op;
+    Node *to = tree->unary.to;
+
+    EvaluatorResult result = evaluate_tree(to);
+    if (!result.is_valid) {
+        return result;
+    }
+
+    switch (op) {
+        case OP_ADD:
+            return result;
+        case OP_SUB:
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = -result.val,
+            };
+        case OP_FACTORIAL:
+            return (EvaluatorResult) {
+                .is_valid = true,
+                .val = tgamma(result.val + 1),
+            };
+        default:
+            return (EvaluatorResult) {
+                .is_valid = false,
+                .err = EVALUATOR_INVALID_TREE,
+            };
+    }
+}
+
+EvaluatorResult evaluate(ParserResult context) {
+    if (!context.is_valid) {
+        return (EvaluatorResult) {
+            .is_valid = false,
+            .err = EVALUATOR_INVALID_PARSING,
+        };
+    }
+
+    EvaluatorResult result = evaluate_tree(context.tree);
+
     arena_destroy(&context.arena);
 
     return result;

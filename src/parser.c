@@ -2,216 +2,391 @@
 #include "arraylist.h"
 #include "lexer.h"
 #include "arena.h"
+#include <cmocka.h>
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-uint8_t prefix_rbp(ASTNode node) {
-    if (node.type == NODE_INTEGER) {
-        return 0;
+ParserU8Result prefix_rbp(Token token) {
+    if (token.type == TOKEN_INTEGER) {
+        return (ParserU8Result) {
+            .is_valid = false,
+            .err = PARSER_UNEXPECTED_TOKEN,
+        };
     }
-
-    switch (node.data.unary.op) {
+    switch (token.op) {
         case OP_SUB:
         case OP_ADD:
-            return 30;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 30,
+            };
         default:
-            return -1;
+            return (ParserU8Result) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
     }
 }
 
-uint8_t postfix_lbp(ASTNode node) {
-    if (node.type == NODE_INTEGER) {
-        return 0;
+ParserU8Result postfix_lbp(Token token) {
+    if (token.type != TOKEN_OPERATOR) {
+        return (ParserU8Result) {
+            .is_valid = false,
+            .err = PARSER_UNEXPECTED_TOKEN,
+        };
     }
 
-    switch (node.data.unary.op) {
+    switch (token.op) {
         case OP_FACTORIAL:
-            return 40;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 40,
+            };
         default:
-            // needs to be dealt with with resulttypes
-            return 255;
+            return (ParserU8Result) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
     }
 }
 
-uint8_t infix_lbp(ASTNode node) {
-    if (node.type == NODE_INTEGER) {
-        return 0;
+ParserU8Result infix_lbp(Token token) {
+    if (token.type != TOKEN_OPERATOR) {
+        return (ParserU8Result) {
+            .is_valid = false,
+            .err = PARSER_UNEXPECTED_TOKEN,
+        };
     }
 
-    switch (node.data.binary.op) {
+    switch (token.op) {
         case OP_ADD:
         case OP_SUB:
-            return 10;
-            break;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 10,
+            };
         case OP_DIV:
         case OP_MUL:
-            return 20;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 20,
+            };
         case OP_POW:
-            return 51;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 51,
+            };
         default:
-            return 0;
+            return (ParserU8Result) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
     }
 }
 
-uint8_t infix_rbp(ASTNode node) {
-    if (node.type == NODE_INTEGER) {
-        return 0;
+ParserU8Result infix_rbp(Token token) {
+    if (token.type != TOKEN_OPERATOR) {
+        return (ParserU8Result) {
+            .is_valid = false,
+            .err = PARSER_UNEXPECTED_TOKEN,
+        };
     }
 
-    switch (node.data.binary.op) {
+    switch (token.op) {
         case OP_ADD:
         case OP_SUB:
-            return 11;
-            break;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 11,
+            };
         case OP_DIV:
         case OP_MUL:
-            return 21;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 21,
+            };
         case OP_POW:
-            return 50;
+            return (ParserU8Result) {
+                .is_valid = true,
+                .num = 50,
+            };
         default:
-            return 0;
+            return (ParserU8Result) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
     }
 }
 
-ParseResult parse(TokenizeResult tokens) {
-    ArraySlice *context = arraylist_slice(tokens.arr, 0, arraylist_size(tokens.arr));
-    Arena arena = arena_init(sizeof(ASTNode) * arraylist_size(tokens.arr)).arena;
-
-    return (ParseResult) {
-        .is_valid = true,
-        .arena = arena,
-        .tree = parse_expr(context, &arena, 0)};
-}
-
-ASTNode *parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
-    // First: Consume a first number
+TreeResult led(
+    ArraySlice *slice,
+    Arena *arena,
+    Node *left,
+    Token token
+) {
     arena_ensure_capacity(
         arena,
-        sizeof(ASTNode),
-        alignof(ASTNode)
-    ); // shouldn't fail but if it does then what a shame
+        sizeof(Node),
+        alignof(Node)
+    );
 
-    // Get pointer in the arena
-    ASTNode *left_side = arena_unwrap_pointer(
+    Node *node = arena_unwrap_pointer(
         arena_alloc(
             arena,
-            sizeof(ASTNode),
-            alignof(ASTNode)
+            sizeof(Node),
+            alignof(Node)
         )
     );
 
-    arrayslice_next(slice, left_side);
+    switch (token.op) {
 
-    if (left_side->type == NODE_PARENTHESIS &&
-        left_side->data.parenthesis.op == OP_START_PAR) {
-        left_side = parse_expr(slice, arena, 0);
-        // HERE CHEKC LATER if slice.next != ')'
-        ASTNode *end_par;
-        arrayslice_next(slice, &end_par);
-        if (end_par->type != NODE_PARENTHESIS ||
-            end_par->data.parenthesis.op != OP_END_PAR) {
-            // todo
+        // Binary operators
+        case OP_ADD:
+        case OP_SUB:
+        case OP_MUL:
+        case OP_DIV:
+        case OP_POW: {
+            node->type = NODE_BINARY_OP;
+            node->binary.op = token.op;
+
+            ParserU8Result rbp_result = infix_rbp(token);
+            if (!rbp_result.is_valid) {
+                return (TreeResult) {
+                    .is_valid = false,
+                    .err = rbp_result.err,
+                };
+            }
+
+            TreeResult right = parse_expr(
+                slice,
+                arena,
+                rbp_result.num
+            );
+
+            if (!right.is_valid) {
+                return right;
+            }
+
+            node->binary.left = left;
+            node->binary.right = right.node;
+
+            return (TreeResult) {
+                .is_valid = true,
+                .node = node,
+            };
         }
-        return left_side;
-    }
-    // if is unary then take prefix bp and continue
-    // to the right, no need to allocate left side
-    // because we just did and right side
-    // WILL return a valid allocated pointer.
-    if (left_side->type == NODE_UNARY_OP) {
-        uint8_t rbp = prefix_rbp(*left_side);
-        ASTNode *righ_side = parse_expr(slice, arena, rbp);
 
-        left_side->data.unary.val = righ_side;
+        // Postfix operators
+        case OP_FACTORIAL: {
+            node->type = NODE_UNARY_OP;
+            node->unary.op = token.op;
+            node->unary.to = left;
+
+            return (TreeResult) {
+                .is_valid = true,
+                .node = node,
+            };
+        }
+
+        default:
+            return (TreeResult) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+            };
+    }
+}
+
+TreeResult nud(ArraySlice *slice, Arena *arena, Token token) {
+    arena_ensure_capacity(
+        arena,
+        sizeof(Node), 
+        alignof(Node)
+    );
+
+    Node *node = arena_unwrap_pointer(
+        arena_alloc(
+            arena, 
+            sizeof(Node),
+            alignof(Node)
+        )
+    );
+
+    if (token.type == TOKEN_INTEGER) {
+        node->type = NODE_INT;
+        node->num = token.num;
+
+        return (TreeResult) {
+            .is_valid = true,
+            .node = node,
+        };
     }
 
-    while (true) {
-        // Second: Get next one and checn bp
-        if (!arrayslice_is_valid(slice)) {
+    switch (token.op) {
+        case OP_START_PAR: {
+            TreeResult expr = parse_expr(slice, arena, 0);
+            if (!expr.is_valid) {
+                return expr;
+            }
+
+            Token end_par;
+            if (arrayslice_next(slice, &end_par) != ARRLIST_OK) {
+                return (TreeResult) {
+                    .is_valid = false,
+                    .err = PARSER_UNMATCHED_PAREN,
+                };
+            }
+
+            if (end_par.type != TOKEN_OPERATOR ||
+                end_par.op != OP_END_PAR) {
+                return (TreeResult) {
+                    .is_valid = false,
+                    .err = PARSER_UNMATCHED_PAREN,
+                };
+            }
+
+            return expr;
+        }
+        case OP_ADD:
+
+        case OP_SUB: {
+            node->type = NODE_UNARY_OP;
+            node->unary.op = token.op;
+
+            ParserU8Result rbp_result = prefix_rbp(token);
+            if (!rbp_result.is_valid) {
+                return (TreeResult) {
+                    .is_valid = false,
+                    .err = rbp_result.err,
+                };
+            }
+
+            TreeResult right = parse_expr(
+                slice,
+                arena,
+                rbp_result.num
+            );
+
+            if (!right.is_valid) {
+                return right;
+            }
+
+            node->unary.to = right.node;
+
+            return (TreeResult) {
+                .is_valid = true,
+                .node = node,
+            };
+        }
+        default:
+            return (TreeResult) {
+                .is_valid = false,
+                .err = PARSER_UNEXPECTED_TOKEN,
+        };
+    }
+}
+
+
+
+ParserResult parse(TokenizeResult tokens) {
+    if (!tokens.is_valid) {
+        return (ParserResult) {
+            .is_valid = false,
+            .err = PARSER_INVALID_TOKENIZE,
+        };
+    }
+
+    ArraySlice *context = arraylist_slice(tokens.arr, 0, arraylist_size(tokens.arr));
+    Arena arena = arena_init(sizeof(Node) * arraylist_size(tokens.arr)).arena;
+
+    TreeResult result = parse_expr(context, &arena, 0);
+    if (!result.is_valid) {
+        arena_destroy(&arena);
+        arraylist_destroy(&tokens.arr);
+        return (ParserResult) {
+            .is_valid = false,
+            .err = result.err,
+        };
+    }
+
+    arraylist_destroy(&tokens.arr);
+    return (ParserResult) {
+        .is_valid = true,
+        .arena = arena,
+        .tree = result.node};
+}
+
+TreeResult parse_expr(ArraySlice *slice, Arena *arena, uint8_t min_bp) {
+    Token current_token;
+
+    if (arrayslice_next(slice, &current_token) != ARRLIST_OK) {
+        return (TreeResult) {
+            .is_valid = false,
+            .err = PARSER_UNEXPECTED_EOF,
+        };
+    }
+
+    TreeResult left_result = nud(slice, arena, current_token);
+
+    if (!left_result.is_valid) {
+        return left_result;
+    }
+
+    Node *left_side = left_result.node;
+
+    while (arrayslice_is_valid(slice)) {
+        Token operator_token;
+        arrayslice_peek(slice, &operator_token);
+
+        if (operator_token.type != TOKEN_OPERATOR) {
             break;
         }
 
-        // Here check if not OP error
+        ParserU8Result postfix_lbp_result = postfix_lbp(operator_token);
 
-        ASTNode operator;
-        // Here should chekc if is operator not some bs
-        // Third, get operator and binding powers
-        arrayslice_peek(slice, &operator);
-
-        // temporary for bad error handling
-        if (postfix_lbp(operator) != 255) {
-            if (postfix_lbp(operator) < min_bp) {
+        if (postfix_lbp_result.is_valid) {
+            if (postfix_lbp_result.num < min_bp) {
                 break;
             }
 
-            // allocate operator
             arrayslice_next(slice, NULL);
-            arena_ensure_capacity(
-                arena,
-                sizeof(ASTNode),
-                alignof(ASTNode));
-            ASTNode *new_node = arena_unwrap_pointer(
-                arena_alloc(
-                    arena, 
-                    sizeof(ASTNode), 
-                    alignof(ASTNode)
-                )
-            );
-            *new_node = operator;
 
+            TreeResult result = led(slice, arena, left_side, operator_token);
 
-            new_node->data.unary.val = left_side;
-
-            left_side = new_node;
-            continue;
-        }
-
-        // check if it has infix or not, if not then error
-        uint8_t rbp = infix_rbp(operator);
-        uint8_t lbp = infix_lbp(operator);
-
-        if (rbp != 255 && lbp != 255) {
-
-            // If lbp is LESS then stop recursion,
-            // we found the next smaller binding power
-            // or the one with more precedence
-            if (lbp < min_bp) {
-                break;
+            if (!result.is_valid) {
+                return result;
             }
 
-
-            // If NOT, then we continue wtching ahead
-            // for the next one but taking our current 
-            // concern that is rbp of the current operator
-            arrayslice_next(slice, NULL);
-            ASTNode *right_side = parse_expr(slice, arena, rbp);
-
-            arena_ensure_capacity(
-                arena,
-                sizeof(ASTNode),
-                alignof(ASTNode));
-            ASTNode *new_node = arena_unwrap_pointer(
-                arena_alloc(
-                    arena, 
-                    sizeof(ASTNode), 
-                    alignof(ASTNode)
-                )
-            );
-            *new_node = operator;
-
-            new_node->data.binary.left = left_side;
-            new_node->data.binary.right = right_side;
-
-            left_side = new_node;
+            left_side = result.node;
 
             continue;
         }
 
-        break;
+        // Path for infix basically
+        ParserU8Result lbp_result = infix_lbp(operator_token);
+
+        if (!lbp_result.is_valid) {
+            break;
+        }
+
+        if (lbp_result.num < min_bp) {
+            break;
+        }
+
+        arrayslice_next(slice, NULL);
+
+        TreeResult result = led(slice, arena, left_side, operator_token);
+
+        if (!result.is_valid) {
+            return result;
+        }
+
+        left_side = result.node;
     }
 
-
     // Final: return left side
-    return left_side;
+    return (TreeResult){
+        .is_valid = true,
+        .node = left_side,
+    };
 }

@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <limits.h>
 
 typedef enum {
@@ -15,34 +15,31 @@ typedef enum {
 
 
 TokenizeResult tokenize(const char *input) {
-    ArrayList *arr = arraylist_init(64, sizeof(ASTNode));
+    ArrayList *arr = arraylist_init(64, sizeof(Token));
     size_t offset = 0;
 
-    while (
-        input[offset] != '\n' ||
-        input[offset] != EOF ||
-        input[offset] != '\0') {
+    while (input[offset] != '\0') {
 
         if (isdigit(input[offset])) {
-            ASTNodeResult result = tokenize_number(input, &offset);
+            TokenResult result = tokenize_number(input, &offset);
 
             if (!result.is_valid) {
+                arraylist_destroy(&arr);
                 return (TokenizeResult) {.is_valid = false, .err = result.err};
             }
 
-            arraylist_push_back(arr, &result.node);
+            arraylist_push_back(arr, &result.token);
         } else if (isoperator(input[offset])) {
-            ASTNode op_node = {
-                .type = NODE_BINARY_OP,
-                .data.binary.op = char_to_operator(input[offset]),
-                .data.binary.left = NULL,
-                .data.binary.right = NULL,
+            Token op_node = {
+                .type = TOKEN_OPERATOR,
+                .op = char_to_operator(input[offset]),
             };
             
             arraylist_push_back(arr, &op_node);
         } else if (isspace(input[offset])) {
             // Nothing...
         } else {
+            arraylist_destroy(&arr);
             return (TokenizeResult) {
                 .is_valid = false,
                 .err = LEXER_NOT_RECOGNIZED_SYMBOL};
@@ -52,6 +49,7 @@ TokenizeResult tokenize(const char *input) {
     }
 
     if (arraylist_size(arr) < 1) {
+        arraylist_destroy(&arr);
         return (TokenizeResult) {.is_valid = false, .err = LEXER_EMPTY_INPUT};
     }
 
@@ -60,7 +58,7 @@ TokenizeResult tokenize(const char *input) {
 
 // CURRENTLY, it only supports ints, not clear how floating
 // point is implemented but i'll figure it out
-ASTNodeResult tokenize_number(const char *input, size_t *offset) {
+TokenResult tokenize_number(const char *input, size_t *offset) {
     char buf[64] = { '\0' };
     size_t buf_pos = 0;
     bool is_integer = true; // Will later be used to differentiate fractions
@@ -68,35 +66,35 @@ ASTNodeResult tokenize_number(const char *input, size_t *offset) {
     // read number
     size_t current = *offset;
     while (isdigit(input[current])) {
-        buf[buf_pos] = input[current];
-        
-        if (buf_pos >= sizeof(buf)) {
-            return (ASTNodeResult) {
+        if (buf_pos >= sizeof(buf) - 1) {
+            return (TokenResult) {
                 .is_valid = false,
                 .err = LEXER_BUF_OVERFLOW};
         }
+
+        buf[buf_pos] = input[current];
 
         current++;
         buf_pos++;
     }
 
-    ASTNode new_node;
+    Token new_token;
     if (is_integer) {
-        new_node.type = NODE_INTEGER;
-        LexerI64Result status = string_to_integer(buf);
+        new_token.type = TOKEN_INTEGER;
+        LexerI64Result result = string_to_integer(buf);
 
 
-        if (!status.is_valid) {
-            return (ASTNodeResult) {.is_valid = false, .err = status.err};
+        if (!result.is_valid) {
+            return (TokenResult) {.is_valid = false, .err = result.err};
         }
 
-        new_node.data.integer = status.number;
+        new_token.num = result.num;
 
-        *offset = current;
-        return (ASTNodeResult) {.is_valid = true, .node = new_node};
+        *offset = current - 1;
+        return (TokenResult) {.is_valid = true, .token = new_token};
     }
 
-    return (ASTNodeResult) {
+    return (TokenResult) {
         .is_valid = false,
         .err = LEXER_FAILED_NUMBER_CONVERSION};
 }
@@ -122,7 +120,7 @@ LexerI64Result string_to_integer(const char *buf) {
         c++;
     }
 
-    return (LexerI64Result) {.is_valid = true, .number = count};
+    return (LexerI64Result) {.is_valid = true, .num = count};
 }
 
 bool isoperator(int c) {

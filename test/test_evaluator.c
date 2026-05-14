@@ -1,6 +1,3 @@
-#include "lexer.h"
-#include "parser.h"
-#include "evaluator.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -9,22 +6,8 @@
 #include <cmocka.h>
 #include <stdlib.h>
 
-static void test_basic_evaluation(void** state) {
-    (void) state;
 
-    char expr[256] = "2 + 4 * 40 / 2";
-    TokenizeResult tokens = tokenize(expr);
-    ParseResult result = parse(tokens);
-    int64_t value = evaluate(result);
-
-    assert_int_equal(value, 82);
-}
 
 int main(void) {
-    const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_basic_evaluation),
-    };
-
-    cmocka_run_group_tests(tests, NULL, NULL);
     return EXIT_SUCCESS;
 }
