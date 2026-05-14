@@ -7,6 +7,7 @@
 typedef enum {
     EVALUATOR_OK,
     EVALUATOR_MATH_ERR,
+    EVALUATOR_DIVISION_BY_ZERO,
     EVALUATOR_INVALID_PARSING,
     EVALUATOR_INVALID_TREE, // just to shut up the compiler with the swithces
 } EvaluatorErr;

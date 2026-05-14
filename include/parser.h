@@ -45,7 +45,7 @@ typedef struct {
     union {
         ParserErr err;
         struct {
-            Arena arena;
+            Arena *arena;
             Node *tree;
         };
     };

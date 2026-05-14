@@ -15,7 +15,8 @@ typedef enum {
 
 
 TokenizeResult tokenize(const char *input) {
-    ArrayList *arr = arraylist_init(64, sizeof(Token));
+    ArrayList *arr;
+    arraylist_init(&arr, 64, sizeof(Token));
     size_t offset = 0;
 
     while (input[offset] != '\0') {

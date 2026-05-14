@@ -296,10 +296,12 @@ ParserResult parse(TokenizeResult tokens) {
         };
     }
 
-    ArraySlice *context = arraylist_slice(tokens.arr, 0, arraylist_size(tokens.arr));
-    Arena arena = arena_init(sizeof(Node) * arraylist_size(tokens.arr)).arena;
+    ArraySlice *context;
+    arraylist_slice(&context, tokens.arr, 0, arraylist_size(tokens.arr));
+    Arena *arena;
+    arena_init(&arena, sizeof(Node) * arraylist_size(tokens.arr));
 
-    TreeResult result = parse_expr(context, &arena, 0);
+    TreeResult result = parse_expr(context, arena, 0);
     if (!result.is_valid) {
         arena_destroy(&arena);
         arraylist_destroy(&tokens.arr);
