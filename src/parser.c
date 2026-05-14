@@ -30,7 +30,7 @@ ParserU8Result prefix_rbp(Token token) {
 }
 
 ParserU8Result postfix_lbp(Token token) {
-    if (token.type != TOKEN_INTEGER) {
+    if (token.type != TOKEN_OPERATOR) {
         return (ParserU8Result) {
             .is_valid = false,
             .err = PARSER_UNEXPECTED_TOKEN,
@@ -52,7 +52,7 @@ ParserU8Result postfix_lbp(Token token) {
 }
 
 ParserU8Result infix_lbp(Token token) {
-    if (token.type != TOKEN_INTEGER) {
+    if (token.type != TOKEN_OPERATOR) {
         return (ParserU8Result) {
             .is_valid = false,
             .err = PARSER_UNEXPECTED_TOKEN,
@@ -86,7 +86,7 @@ ParserU8Result infix_lbp(Token token) {
 }
 
 ParserU8Result infix_rbp(Token token) {
-    if (token.type != TOKEN_INTEGER) {
+    if (token.type != TOKEN_OPERATOR) {
         return (ParserU8Result) {
             .is_valid = false,
             .err = PARSER_UNEXPECTED_TOKEN,

@@ -40,6 +40,7 @@ target_include_directories(calculator_lib
 target_link_libraries(calculator_lib
     PUBLIC arena
     PUBLIC arraylist
+    PRIVATE m
 )
 
 add_executable(calculator src/main.c)

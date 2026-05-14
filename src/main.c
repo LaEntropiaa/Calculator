@@ -18,12 +18,11 @@ int main(void) {
     }
     buf[pos] = '\0';
 
-    TokenizeResult tokens = tokenize(buf);
+    EvaluatorResult result = evaluate(parse(tokenize(buf)));
+    if (!result.is_valid) {
+        puts("Error checando expresion");
+    }
 
-    ParseResult par = parse(tokens);
-    int64_t result = evaluate(par);
-
-
-    printf("El resultado es: %" PRIi64 "\n", result);
+    printf("El resultado es: %" PRIi64 "\n", result.val);
     return EXIT_SUCCESS;
 }

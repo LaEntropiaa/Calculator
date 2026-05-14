@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <limits.h>
 
 typedef enum {
@@ -18,10 +18,7 @@ TokenizeResult tokenize(const char *input) {
     ArrayList *arr = arraylist_init(64, sizeof(Token));
     size_t offset = 0;
 
-    while (
-        input[offset] != '\n' ||
-        input[offset] != EOF ||
-        input[offset] != '\0') {
+    while (input[offset] != '\0') {
 
         if (isdigit(input[offset])) {
             TokenResult result = tokenize_number(input, &offset);
@@ -69,13 +66,13 @@ TokenResult tokenize_number(const char *input, size_t *offset) {
     // read number
     size_t current = *offset;
     while (isdigit(input[current])) {
-        buf[buf_pos] = input[current];
-        
-        if (buf_pos >= sizeof(buf)) {
+        if (buf_pos >= sizeof(buf) - 1) {
             return (TokenResult) {
                 .is_valid = false,
                 .err = LEXER_BUF_OVERFLOW};
         }
+
+        buf[buf_pos] = input[current];
 
         current++;
         buf_pos++;
@@ -93,7 +90,7 @@ TokenResult tokenize_number(const char *input, size_t *offset) {
 
         new_token.num = result.num;
 
-        *offset = current;
+        *offset = current - 1;
         return (TokenResult) {.is_valid = true, .token = new_token};
     }
 

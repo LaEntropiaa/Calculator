@@ -27,7 +27,11 @@ EvaluatorResult evaluate_binary(Node *tree) {
     
     EvaluatorResult left_result = evaluate_tree(left);
     EvaluatorResult right_result = evaluate_tree(right);
-    if (!left_result.is_valid || !right_result.is_valid) {
+    if (!left_result.is_valid) {
+        return left_result;
+    }
+
+    if (!left_result.is_valid) {
         return left_result;
     }
 
