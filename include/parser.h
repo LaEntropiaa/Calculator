@@ -11,7 +11,6 @@ typedef enum {
     NODE_INT,
     NODE_BINARY_OP,
     NODE_UNARY_OP,
-    NODE_PARENTHESIS,
 } NodeType;
 
 typedef struct Node {

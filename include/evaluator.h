@@ -1,7 +1,6 @@
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
 
-#include "lexer.h"
 #include "parser.h"
 #include <stdint.h>
 
@@ -19,6 +18,9 @@ typedef struct {
         EvaluatorErr err;
     };
 } EvaluatorResult;
+
+EvaluatorResult evaluate_binary(Node *tree);
+EvaluatorResult evaluate_unary(Node *tree);
 
 EvaluatorResult evaluate(ParserResult context);
 EvaluatorResult evaluate_tree(Node *tree);
