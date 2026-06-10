@@ -1,9 +1,9 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "lae_arena.h"
+#include "lae_arraylist.h"
 #include "lexer.h"
-#include "arena.h"
-#include "arraylist.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -21,11 +21,11 @@ typedef struct Node {
             Operator op;
             struct Node *left;
             struct Node *right;
-        }binary;
+        } binary;
         struct {
             Operator op;
             struct Node *to;
-        }unary;
+        } unary;
         Operator par;
     };
 } Node;
@@ -51,7 +51,7 @@ typedef struct {
     };
 } ParserResult;
 
-typedef struct  {
+typedef struct {
     bool is_valid;
     union {
         ParserErr err;
@@ -76,7 +76,11 @@ typedef struct {
 } ParserU8Result;
 
 TreeResult nud(ArraySlice *slice, Arena *arena, Token token); // Null denotation
-TreeResult led(ArraySlice *slice, Arena *arena, Node *left, Token token); // Left denotation
+TreeResult
+led(ArraySlice *slice,
+    Arena *arena,
+    Node *left,
+    Token token); // Left denotation
 
 ParserU8Result prefix_rbp(Token token);
 ParserU8Result postfix_lbp(Token token);

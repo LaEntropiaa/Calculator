@@ -7,6 +7,12 @@ out/
 out/Debug/
 out/Release/
 
+# xmake
+.xmake
+xmake
+xmake/
+.xmake/
+
 # Cmake files
 CMakeCache.txt
 cmake
