@@ -1,9 +1,9 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "arraylist.h"
-#include <stddef.h>
+#include "lae_arraylist.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 // For identifing
@@ -66,8 +66,8 @@ typedef struct {
 } LexerI64Result;
 
 // Lexer funtions as well as few functionality
-TokenizeResult tokenize(const char* input);
-TokenResult tokenize_number(const char* input, size_t *offset);
+TokenizeResult tokenize(const char *input);
+TokenResult tokenize_number(const char *input, size_t *offset);
 LexerI64Result string_to_integer(const char buf[]);
 bool isoperator(int c);
 Operator char_to_operator(int c);
